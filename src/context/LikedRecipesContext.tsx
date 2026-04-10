@@ -1,0 +1,56 @@
+import { createContext, useContext, useCallback, type ReactNode } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import type { Meal } from "../types/meal";
+
+interface LikedRecipesContextValue {
+  likedRecipes: Meal[];
+  addLike: (meal: Meal) => void;
+  removeLike: (id: string) => void;
+  isLiked: (id: string) => boolean;
+}
+
+const LikedRecipesContext = createContext<LikedRecipesContextValue | null>(null);
+
+export function LikedRecipesProvider({ children }: { children: ReactNode }) {
+  const [likedRecipes, setLikedRecipes] = useLocalStorage<Meal[]>(
+    "catcook-liked-recipes",
+    []
+  );
+
+  const addLike = useCallback(
+    (meal: Meal) => {
+      setLikedRecipes((prev) => {
+        if (prev.some((m) => m.idMeal === meal.idMeal)) return prev;
+        return [meal, ...prev];
+      });
+    },
+    [setLikedRecipes]
+  );
+
+  const removeLike = useCallback(
+    (id: string) => {
+      setLikedRecipes((prev) => prev.filter((m) => m.idMeal !== id));
+    },
+    [setLikedRecipes]
+  );
+
+  const isLiked = useCallback(
+    (id: string) => likedRecipes.some((m) => m.idMeal === id),
+    [likedRecipes]
+  );
+
+  return (
+    <LikedRecipesContext.Provider
+      value={{ likedRecipes, addLike, removeLike, isLiked }}
+    >
+      {children}
+    </LikedRecipesContext.Provider>
+  );
+}
+
+export function useLikedRecipes() {
+  const ctx = useContext(LikedRecipesContext);
+  if (!ctx)
+    throw new Error("useLikedRecipes must be used within LikedRecipesProvider");
+  return ctx;
+}
