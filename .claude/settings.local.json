@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.themealdb.com)",
+      "WebSearch",
+      "WebFetch(domain:spoonacular.com)",
+      "WebFetch(domain:developer.edamam.com)",
+      "WebFetch(domain:dummyjson.com)",
+      "WebFetch(domain:api-ninjas.com)",
+      "WebFetch(domain:blog.suggestic.com)",
+      "Bash(npm create:*)",
+      "Bash(cp -r \"c:/Users/k.klein/privat/CatCookTemp/\"* \"c:/Users/k.klein/privat/CatCook/\")",
+      "Bash(cp \"c:/Users/k.klein/privat/CatCookTemp/.gitignore\" \"c:/Users/k.klein/privat/CatCook/\")",
+      "Bash(rm -rf \"c:/Users/k.klein/privat/CatCookTemp\")"
+    ]
+  }
+}
