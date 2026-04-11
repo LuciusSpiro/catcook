@@ -1,0 +1,30 @@
+{
+  "name": "CatCook - Die Küchenmeister",
+  "short_name": "CatCook",
+  "description": "Koch-App mit Katzen-Theme, Rezept-Swiping und Gamification",
+  "start_url": ".",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff5f0",
+  "theme_color": "#ff6b6b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
