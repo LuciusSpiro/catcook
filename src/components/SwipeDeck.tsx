@@ -1,6 +1,8 @@
 import { X, Heart } from "lucide-react";
 import SwipeCard from "./SwipeCard";
 import type { Meal } from "../types/meal";
+import chefStirring from "../assets/chef-stirring.png";
+import catSoup from "../assets/cat-soup.png";
 
 interface SwipeDeckProps {
   currentMeal: Meal | null;
@@ -25,7 +27,7 @@ export default function SwipeDeck({
     return (
       <div className="swipe-deck">
         <div className="swipe-deck__loading">
-          <span className="loading-cat">🐱</span>
+          <img className="loading-cat" src={chefStirring} alt="Loading" width="80" />
           <p>Rezepte werden geladen...</p>
         </div>
       </div>
@@ -36,7 +38,7 @@ export default function SwipeDeck({
     return (
       <div className="swipe-deck">
         <div className="swipe-deck__empty">
-          <span className="empty-cat">😿</span>
+          <img className="empty-state__img" src={catSoup} alt="Keine Rezepte" width="100" />
           <p>Keine Rezepte mehr!</p>
           <p className="text-light">Ändere die Filter oder komm später wieder.</p>
         </div>

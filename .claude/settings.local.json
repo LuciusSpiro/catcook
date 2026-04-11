@@ -11,7 +11,10 @@
       "Bash(npm create:*)",
       "Bash(cp -r \"c:/Users/k.klein/privat/CatCookTemp/\"* \"c:/Users/k.klein/privat/CatCook/\")",
       "Bash(cp \"c:/Users/k.klein/privat/CatCookTemp/.gitignore\" \"c:/Users/k.klein/privat/CatCook/\")",
-      "Bash(rm -rf \"c:/Users/k.klein/privat/CatCookTemp\")"
+      "Bash(rm -rf \"c:/Users/k.klein/privat/CatCookTemp\")",
+      "Bash(/c/Python312/python.exe -c \"from PIL import Image; print\\('OK'\\)\")",
+      "Bash(/c/Python312/python.exe -c ':*)",
+      "Bash(/c/Python312/python.exe)"
     ]
   }
 }

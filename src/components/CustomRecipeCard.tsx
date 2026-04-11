@@ -1,6 +1,7 @@
 import { Pencil, Clock } from "lucide-react";
 import { CAT_RATINGS, SKILLS, INGREDIENT_UNITS } from "../types/player";
 import type { CustomRecipe } from "../types/player";
+import catRecipe from "../assets/cat-recipe.png";
 
 interface CustomRecipeCardProps {
   recipe: CustomRecipe;
@@ -17,7 +18,9 @@ export default function CustomRecipeCard({ recipe, onClick }: CustomRecipeCardPr
           <img src={recipe.image} alt={recipe.name} />
         </div>
       ) : (
-        <div className="custom-recipe-card__icon">🐱</div>
+        <div className="custom-recipe-card__icon">
+          <img src={catRecipe} alt="Rezept" width="60" />
+        </div>
       )}
       <div className="custom-recipe-card__info">
         <h3 className="custom-recipe-card__title">{recipe.name}</h3>
@@ -61,7 +64,7 @@ export function CustomRecipeDetail({ recipe, onBack, onEdit, onDelete }: CustomR
         </div>
       ) : (
         <div className="custom-recipe-detail__hero">
-          <span className="custom-recipe-detail__big-cat">🐱</span>
+          <img src={catRecipe} alt="Rezept" width="120" />
         </div>
       )}
 

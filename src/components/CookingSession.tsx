@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowLeft, Play, Pause, SkipForward, ChevronRight, Clock } from "lucide-react";
-import { SKILLS, INGREDIENT_UNITS, CAT_RATINGS, getRank, getNextRank, RANKS } from "../types/player";
+import { SKILLS, INGREDIENT_UNITS, getRank, getNextRank, XP_SKILL_LEVELUP } from "../types/player";
 import type { CustomRecipe } from "../types/player";
 import { usePlayer, type CookReward } from "../context/PlayerContext";
+import chefPresenting from "../assets/chef-presenting.png";
 
 interface CookingSessionProps {
   recipe: CustomRecipe;
@@ -112,7 +113,7 @@ export default function CookingSession({ recipe, onExit }: CookingSessionProps) 
     return (
       <div className="page cook-page">
         <div className="cook-success">
-          <div className="cook-success__cat">{rankedUp ? "🎉" : "😻"}</div>
+          <img className="cook-success__cat-img" src={chefPresenting} alt="Chef Cat" width="140" />
           <h1 className="cook-success__title">Purr-fekt!</h1>
           <p className="cook-success__subtitle">
             {recipe.name} ist fertig!

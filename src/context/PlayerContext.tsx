@@ -2,7 +2,7 @@ import { createContext, useContext, useCallback, useMemo, type ReactNode } from 
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useLikedRecipes } from "./LikedRecipesContext";
 import type { PlayerData, CustomRecipe, CustomIngredient, AchievementTier } from "../types/player";
-import { ACHIEVEMENTS, SKILLS, getRank, XP_RECIPE_COMPLETE_BASE, XP_PER_STEP, XP_SKILL_LEVELUP } from "../types/player";
+import { SKILLS, getRank, XP_RECIPE_COMPLETE_BASE, XP_PER_STEP, XP_SKILL_LEVELUP } from "../types/player";
 
 function getSkillLevel(xp: number): number {
   return Math.min(10, Math.floor(xp / 3) + 1);

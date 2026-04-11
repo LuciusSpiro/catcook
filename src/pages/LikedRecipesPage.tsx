@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import catRecipeImg from "../assets/cat-recipe.png";
 import { useLikedRecipes } from "../context/LikedRecipesContext";
 import { usePlayer } from "../context/PlayerContext";
 import RecipeGridCard from "../components/RecipeGridCard";
@@ -67,7 +68,7 @@ export default function LikedRecipesPage() {
     return (
       <div className="page liked-page">
         <div className="empty-state">
-          <span className="empty-cat">😻</span>
+          <img className="empty-state__img" src={catRecipeImg} alt="Cat" width="120" />
           <h2>Noch keine Rezepte</h2>
           <p className="text-light">
             Swipe Rezepte nach rechts oder erstelle dein eigenes!

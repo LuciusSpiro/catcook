@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
-import { getCategories, getAreas, getIngredientList } from "../api/mealdb";
+import { getCategories, getAreas, getIngredientList } from "../data/localRecipes";
 import type { Category, Area, IngredientListItem } from "../types/meal";
 
 interface FilterBarProps {

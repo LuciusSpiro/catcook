@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getRandomMeal, getMealsByCategory, getMealsByArea, getMealById } from "../api/mealdb";
+import { getRandomMeal, getMealsByCategory, getMealsByArea, getMealById } from "../data/localRecipes";
 import type { Meal } from "../types/meal";
 
 const BATCH_SIZE = 5;

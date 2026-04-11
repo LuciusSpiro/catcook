@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { getMealById } from "../api/mealdb";
+import { getMealById } from "../data/localRecipes";
 import { useLikedRecipes } from "../context/LikedRecipesContext";
 import RecipeDetail from "../components/RecipeDetail";
 import type { Meal } from "../types/meal";

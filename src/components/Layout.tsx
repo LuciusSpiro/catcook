@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import PlayerMenu from "./PlayerMenu";
 import NamePromptModal from "./NamePromptModal";
 import { usePlayer } from "../context/PlayerContext";
+import logo from "../assets/logo.png";
+import headerLogo from "../assets/header.png";
 
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -11,10 +13,13 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-shell">
+      <img className="app-bg-logo" src={logo} alt="" aria-hidden="true" />
       {!player && <NamePromptModal onSubmit={setName} />}
 
       <header className="app-header">
-        <span className="logo">🐱 CatCook</span>
+        <NavLink to="/" className="logo-link" aria-label="Startseite">
+          <img className="logo-img" src={headerLogo} alt="CatCook" />
+        </NavLink>
         <PlayerMenu />
       </header>
 

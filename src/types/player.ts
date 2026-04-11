@@ -112,7 +112,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 
 export const CAT_RATINGS = ["🙀", "😿", "😺", "😸", "😻"] as const;
 
-// ── Mi-Ausbildungssystem: 20 Ränge ──
+// ── Miausbildungssystem: 20 Ränge ──
 export interface RankDef {
   rank: number;
   name: string;
@@ -192,11 +192,16 @@ export interface CustomRecipe {
   category: string;
   rating: number; // 1-5
   cookingTimeMinutes?: number;
-  image?: string; // base64 data URL
+  servings?: number;
+  image?: string; // base64 data URL or external URL
   ingredients: RecipeIngredient[];
   steps: CustomRecipeStep[];
   equipment: string[];
   createdAt: string;
+  // Optional fields populated only for imported recipes (TheMealDB)
+  area?: string;
+  tags?: string[];
+  youtube?: string;
 }
 
 export const RECIPE_CATEGORIES = [
