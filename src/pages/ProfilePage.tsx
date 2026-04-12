@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { usePlayer } from "../context/PlayerContext";
 import avatarImg from "../assets/avatar.png";
 import { SKILLS, ACHIEVEMENTS, RANKS, getRank, getNextRank } from "../types/player";
+import { SKILL_MAX_LEVEL, SKILL_XP_PER_LEVEL } from "../constants";
 import type { AchievementTier, SkillId } from "../types/player";
 import skillChopping from "../assets/skill-chopping.png";
 import skillCooking from "../assets/skill-cooking.png";
@@ -148,8 +149,8 @@ export default function ProfilePage() {
         <div className="card-grid">
           {SKILLS.map((skill) => {
             const xp = skillXp[skill.id] ?? 0;
-            const level = Math.min(10, Math.floor(xp / 3) + 1);
-            const progressInLevel = xp % 3;
+            const level = Math.min(SKILL_MAX_LEVEL, Math.floor(xp / SKILL_XP_PER_LEVEL) + 1);
+            const progressInLevel = xp % SKILL_XP_PER_LEVEL;
             return (
               <div key={skill.id} className="stat-card">
                 <img className="stat-card__img" src={SKILL_IMAGES[skill.id]} alt={skill.name} />
@@ -158,7 +159,7 @@ export default function ProfilePage() {
                 <div className="stat-card__bar">
                   <div
                     className="stat-card__fill"
-                    style={{ width: `${(progressInLevel / 3) * 100}%` }}
+                    style={{ width: `${(progressInLevel / SKILL_XP_PER_LEVEL) * 100}%` }}
                   />
                 </div>
               </div>

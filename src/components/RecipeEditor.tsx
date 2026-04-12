@@ -3,37 +3,8 @@ import { ArrowLeft, Plus, X, Clock, Camera, Upload } from "lucide-react";
 import { usePlayer } from "../context/PlayerContext";
 import { SKILLS, RECIPE_CATEGORIES, CAT_RATINGS } from "../types/player";
 import type { CustomRecipe, CustomRecipeStep, SkillId, RecipeIngredient } from "../types/player";
+import { resizeImage } from "../utils/image";
 import IngredientPicker from "./IngredientPicker";
-
-const MAX_IMAGE_SIZE = 800;
-
-function resizeImage(file: File): Promise<string> {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let { width, height } = img;
-        if (width > MAX_IMAGE_SIZE || height > MAX_IMAGE_SIZE) {
-          if (width > height) {
-            height = (height / width) * MAX_IMAGE_SIZE;
-            width = MAX_IMAGE_SIZE;
-          } else {
-            width = (width / height) * MAX_IMAGE_SIZE;
-            height = MAX_IMAGE_SIZE;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.8));
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-}
 
 interface RecipeEditorProps {
   onClose: () => void;

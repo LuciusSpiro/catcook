@@ -1,22 +1,13 @@
 import { useState, useMemo } from "react";
-import { ShoppingCart, Package, Plus, X, Trash2 } from "lucide-react";
+import { ShoppingCart, Package, Trash2 } from "lucide-react";
 import { usePlayer } from "../context/PlayerContext";
 import { getCustomRecipeById } from "../data/localRecipes";
-import { INGREDIENT_UNITS } from "../types/player";
-import type { PantryItem, RecipeIngredient } from "../types/player";
+import { formatIngredientAmount } from "../utils/format";
+import { toDateStr } from "../utils/date";
+import type { PantryItem } from "../types/player";
 import SwipeRow from "../components/SwipeRow";
 
 type Tab = "shopping" | "pantry";
-
-function toDateStr(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-function formatAmount(amount: number | null | undefined, unit: string | undefined): string {
-  if (amount == null) return "";
-  const label = INGREDIENT_UNITS.find((u) => u.value === unit)?.label ?? unit ?? "";
-  return `${amount} ${label}`.trim();
-}
 
 interface AggregatedItem {
   name: string;
@@ -195,7 +186,7 @@ export default function ShoppingPage() {
                     key={`${item.name}__${item.unit}`}
                     icon={item.icon}
                     label={item.name}
-                    sublabel={formatAmount(item.amount, item.unit)}
+                    sublabel={formatIngredientAmount(item.amount, item.unit)}
                     onSwipeLeft={() => handleDismiss(item)}
                     onSwipeRight={() => handleBought(item)}
                   />
@@ -236,7 +227,7 @@ export default function ShoppingPage() {
                   <span className="pantry-item__icon">{item.icon}</span>
                   <span className="pantry-item__name">{item.name}</span>
                   <span className="pantry-item__amount">
-                    {formatAmount(item.amount, item.unit)}
+                    {formatIngredientAmount(item.amount, item.unit)}
                   </span>
                   <button
                     className="pantry-item__remove"

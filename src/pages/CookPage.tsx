@@ -1,33 +1,19 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { usePlayer } from "../context/PlayerContext";
-import { useLikedRecipes } from "../context/LikedRecipesContext";
-import { getCustomRecipeById } from "../data/localRecipes";
+import { useAllRecipes } from "../hooks/useAllRecipes";
 import type { CustomRecipe } from "../types/player";
 import CookingSession from "../components/CookingSession";
+import RecipePickItem from "../components/RecipePickItem";
 import catUtensils from "../assets/cat-utensils.png";
 import chefStirring from "../assets/chef-stirring.png";
 
 export default function CookPage() {
   const { player } = usePlayer();
-  const { likedRecipes } = useLikedRecipes();
+  const allRecipes = useAllRecipes();
   const [selectedRecipe, setSelectedRecipe] = useState<CustomRecipe | null>(null);
 
   const customRecipes = player?.customRecipes ?? [];
-
-  // Map liked recipes (Meal[]) to CustomRecipe via lookup. If a liked meal's
-  // idMeal isn't in our local dataset (older data shape), skip it.
-  const likedAsCustom = useMemo<CustomRecipe[]>(() => {
-    const customIds = new Set(customRecipes.map((r) => r.id));
-    return likedRecipes
-      .map((m) => getCustomRecipeById(m.idMeal))
-      .filter((r): r is CustomRecipe => !!r)
-      .filter((r) => !customIds.has(r.id)); // avoid duplicates if same id somewhere
-  }, [likedRecipes, customRecipes]);
-
-  const allRecipes = useMemo<CustomRecipe[]>(
-    () => [...customRecipes, ...likedAsCustom],
-    [customRecipes, likedAsCustom]
-  );
+  const likedRecipes = allRecipes.filter((r) => !customRecipes.some((c) => c.id === r.id));
 
   if (selectedRecipe) {
     return <CookingSession recipe={selectedRecipe} onExit={() => setSelectedRecipe(null)} />;
@@ -47,38 +33,6 @@ export default function CookPage() {
     );
   }
 
-  const renderRecipeItem = (recipe: CustomRecipe) => (
-    <button
-      key={recipe.id}
-      className="cook-recipe-item"
-      onClick={() => setSelectedRecipe(recipe)}
-    >
-      {recipe.image ? (
-        <img
-          className="cook-recipe-item__img"
-          src={recipe.image}
-          alt={recipe.name}
-        />
-      ) : (
-        <div className="cook-recipe-item__placeholder">🐱</div>
-      )}
-      <div className="cook-recipe-item__info">
-        <h3 className="cook-recipe-item__title">{recipe.name}</h3>
-        <div className="cook-recipe-item__meta">
-          <span className="tag tag--category">{recipe.category}</span>
-          {recipe.cookingTimeMinutes && (
-            <span className="cook-recipe-item__time">
-              ⏱️ {recipe.cookingTimeMinutes} Min.
-            </span>
-          )}
-        </div>
-        <span className="cook-recipe-item__steps">
-          {recipe.steps.length} Schritte · {recipe.ingredients.length} Zutaten
-        </span>
-      </div>
-    </button>
-  );
-
   return (
     <div className="page cook-page">
       <div className="cook-page__header-img">
@@ -93,16 +47,20 @@ export default function CookPage() {
         <>
           <h2 className="section-subtitle">🐱 Eigene Rezepte</h2>
           <div className="cook-recipe-list">
-            {customRecipes.map(renderRecipeItem)}
+            {customRecipes.map((r) => (
+              <RecipePickItem key={r.id} recipe={r} onClick={() => setSelectedRecipe(r)} />
+            ))}
           </div>
         </>
       )}
 
-      {likedAsCustom.length > 0 && (
+      {likedRecipes.length > 0 && (
         <>
           <h2 className="section-subtitle">😻 Gelikte Rezepte</h2>
           <div className="cook-recipe-list">
-            {likedAsCustom.map(renderRecipeItem)}
+            {likedRecipes.map((r) => (
+              <RecipePickItem key={r.id} recipe={r} onClick={() => setSelectedRecipe(r)} />
+            ))}
           </div>
         </>
       )}

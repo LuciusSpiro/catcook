@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Shuffle, X } from "lucide-react";
 import { usePlayer } from "../context/PlayerContext";
-import { useLikedRecipes } from "../context/LikedRecipesContext";
-import { getCustomRecipeById } from "../data/localRecipes";
-import type { CustomRecipe, MealPlanEntry } from "../types/player";
+import { useAllRecipes } from "../hooks/useAllRecipes";
+import { toDateStr, getMonday, getWeekDays } from "../utils/date";
+import RecipePickItem from "../components/RecipePickItem";
+import type { CustomRecipe } from "../types/player";
 
 const DAY_NAMES = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 const MONTH_NAMES = [
@@ -11,30 +12,9 @@ const MONTH_NAMES = [
   "Juli", "August", "September", "Oktober", "November", "Dezember",
 ];
 
-function toDateStr(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-function getMonday(d: Date): Date {
-  const copy = new Date(d);
-  const day = copy.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  copy.setDate(copy.getDate() + diff);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
-
-function getWeekDays(monday: Date): Date[] {
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(d.getDate() + i);
-    return d;
-  });
-}
-
 export default function PlanPage() {
-  const { player, mealPlan, setMealPlan } = usePlayer();
-  const { likedRecipes } = useLikedRecipes();
+  const { mealPlan, setMealPlan } = usePlayer();
+  const allRecipes = useAllRecipes();
   const [weekOffset, setWeekOffset] = useState(0);
   const [pickingDate, setPickingDate] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,55 +34,26 @@ export default function PlanPage() {
     return `${first.getDate()}. ${MONTH_NAMES[first.getMonth()].slice(0, 3)} – ${last.getDate()}. ${MONTH_NAMES[last.getMonth()].slice(0, 3)} ${last.getFullYear()}`;
   })();
 
-  // Build available recipes for picker (custom + liked)
-  const customRecipes = player?.customRecipes ?? [];
-  const likedAsCustom = useMemo<CustomRecipe[]>(() => {
-    const customIds = new Set(customRecipes.map((r) => r.id));
-    return likedRecipes
-      .map((m) => getCustomRecipeById(m.idMeal))
-      .filter((r): r is CustomRecipe => !!r)
-      .filter((r) => !customIds.has(r.id));
-  }, [likedRecipes, customRecipes]);
-
-  const allRecipes = useMemo<CustomRecipe[]>(
-    () => [...customRecipes, ...likedAsCustom],
-    [customRecipes, likedAsCustom]
-  );
-
   const filteredRecipes = useMemo(() => {
     if (!searchTerm.trim()) return allRecipes;
     const q = searchTerm.toLowerCase();
     return allRecipes.filter((r) =>
-      r.name.toLowerCase().includes(q) ||
-      r.category.toLowerCase().includes(q)
+      r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q)
     );
   }, [allRecipes, searchTerm]);
 
   const assignRandom = (date: string) => {
     if (allRecipes.length === 0) return;
     const recipe = allRecipes[Math.floor(Math.random() * allRecipes.length)];
-    setMealPlan(date, {
-      recipeId: recipe.id,
-      recipeName: recipe.name,
-      recipeImage: recipe.image,
-    });
+    setMealPlan(date, { recipeId: recipe.id, recipeName: recipe.name, recipeImage: recipe.image });
   };
 
   const assignRecipe = (date: string, recipe: CustomRecipe) => {
-    setMealPlan(date, {
-      recipeId: recipe.id,
-      recipeName: recipe.name,
-      recipeImage: recipe.image,
-    });
+    setMealPlan(date, { recipeId: recipe.id, recipeName: recipe.name, recipeImage: recipe.image });
     setPickingDate(null);
     setSearchTerm("");
   };
 
-  const removePlan = (date: string) => {
-    setMealPlan(date, null);
-  };
-
-  // Recipe picker modal
   if (pickingDate) {
     return (
       <div className="page plan-page">
@@ -143,28 +94,7 @@ export default function PlanPage() {
               </p>
             )}
             {filteredRecipes.map((recipe) => (
-              <button
-                key={recipe.id}
-                className="cook-recipe-item"
-                onClick={() => assignRecipe(pickingDate, recipe)}
-              >
-                {recipe.image ? (
-                  <img className="cook-recipe-item__img" src={recipe.image} alt={recipe.name} />
-                ) : (
-                  <div className="cook-recipe-item__placeholder">🐱</div>
-                )}
-                <div className="cook-recipe-item__info">
-                  <h3 className="cook-recipe-item__title">{recipe.name}</h3>
-                  <div className="cook-recipe-item__meta">
-                    <span className="tag tag--category">{recipe.category}</span>
-                    {recipe.cookingTimeMinutes && (
-                      <span className="cook-recipe-item__time">
-                        ⏱️ {recipe.cookingTimeMinutes} Min.
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
+              <RecipePickItem key={recipe.id} recipe={recipe} onClick={() => assignRecipe(pickingDate, recipe)} />
             ))}
           </div>
         </div>
@@ -176,7 +106,6 @@ export default function PlanPage() {
     <div className="page plan-page">
       <h1 className="page-title">📅 Wochenplan</h1>
 
-      {/* Week navigation */}
       <div className="plan-week-nav">
         <button className="plan-nav-btn" onClick={() => setWeekOffset(weekOffset - 1)}>
           <ChevronLeft size={20} />
@@ -184,9 +113,7 @@ export default function PlanPage() {
         <div className="plan-week-nav__label">
           {weekLabel}
           {weekOffset !== 0 && (
-            <button className="plan-today-btn" onClick={() => setWeekOffset(0)}>
-              Heute
-            </button>
+            <button className="plan-today-btn" onClick={() => setWeekOffset(0)}>Heute</button>
           )}
         </div>
         <button className="plan-nav-btn" onClick={() => setWeekOffset(weekOffset + 1)}>
@@ -194,19 +121,15 @@ export default function PlanPage() {
         </button>
       </div>
 
-      {/* Week days */}
       <div className="plan-days">
         {weekDays.map((day, i) => {
           const dateStr = toDateStr(day);
           const entry = mealPlan[dateStr];
-          const isToday = toDateStr(day) === toDateStr(today);
+          const isToday = dateStr === toDateStr(today);
           const isPast = day < today && !isToday;
 
           return (
-            <div
-              key={dateStr}
-              className={`plan-day ${isToday ? "plan-day--today" : ""} ${isPast ? "plan-day--past" : ""}`}
-            >
+            <div key={dateStr} className={`plan-day ${isToday ? "plan-day--today" : ""} ${isPast ? "plan-day--past" : ""}`}>
               <div className="plan-day__header">
                 <span className="plan-day__name">{DAY_NAMES[i]}</span>
                 <span className="plan-day__date">{day.getDate()}.</span>
@@ -214,29 +137,14 @@ export default function PlanPage() {
 
               {entry ? (
                 <div className="plan-day__recipe">
-                  {entry.recipeImage && (
-                    <img className="plan-day__img" src={entry.recipeImage} alt={entry.recipeName} />
-                  )}
+                  {entry.recipeImage && <img className="plan-day__img" src={entry.recipeImage} alt={entry.recipeName} />}
                   <span className="plan-day__recipe-name">{entry.recipeName}</span>
-                  <button className="plan-day__remove" onClick={() => removePlan(dateStr)}>
-                    <X size={14} />
-                  </button>
+                  <button className="plan-day__remove" onClick={() => setMealPlan(dateStr, null)}><X size={14} /></button>
                 </div>
               ) : (
                 <div className="plan-day__empty">
-                  <button
-                    className="plan-day__add"
-                    onClick={() => setPickingDate(dateStr)}
-                  >
-                    + Rezept
-                  </button>
-                  <button
-                    className="plan-day__random"
-                    onClick={() => assignRandom(dateStr)}
-                    title="Zufälliges Rezept"
-                  >
-                    <Shuffle size={14} />
-                  </button>
+                  <button className="plan-day__add" onClick={() => setPickingDate(dateStr)}>+ Rezept</button>
+                  <button className="plan-day__random" onClick={() => assignRandom(dateStr)} title="Zufälliges Rezept"><Shuffle size={14} /></button>
                 </div>
               )}
             </div>

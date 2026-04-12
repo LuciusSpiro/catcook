@@ -1,11 +1,12 @@
 import { createContext, useContext, useCallback, useMemo, type ReactNode } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useLikedRecipes } from "./LikedRecipesContext";
+import { STORAGE_KEY_PLAYER, SKILL_MAX_LEVEL, SKILL_XP_PER_LEVEL } from "../constants";
 import type { PlayerData, CustomRecipe, CustomIngredient, AchievementTier, MealPlanEntry, PantryItem } from "../types/player";
 import { SKILLS, getRank, XP_RECIPE_COMPLETE_BASE, XP_PER_STEP, XP_SKILL_LEVELUP } from "../types/player";
 
 function getSkillLevel(xp: number): number {
-  return Math.min(10, Math.floor(xp / 3) + 1);
+  return Math.min(SKILL_MAX_LEVEL, Math.floor(xp / SKILL_XP_PER_LEVEL) + 1);
 }
 
 export interface CookReward {
@@ -40,7 +41,7 @@ interface PlayerContextValue {
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
-  const [player, setPlayer] = useLocalStorage<PlayerData | null>("catcook-player", null);
+  const [player, setPlayer] = useLocalStorage<PlayerData | null>(STORAGE_KEY_PLAYER, null);
   const { likedRecipes } = useLikedRecipes();
 
   const setName = useCallback(

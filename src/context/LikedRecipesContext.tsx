@@ -1,5 +1,6 @@
 import { createContext, useContext, useCallback, type ReactNode } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { STORAGE_KEY_LIKED } from "../constants";
 import type { Meal } from "../types/meal";
 
 interface LikedRecipesContextValue {
@@ -13,7 +14,7 @@ const LikedRecipesContext = createContext<LikedRecipesContextValue | null>(null)
 
 export function LikedRecipesProvider({ children }: { children: ReactNode }) {
   const [likedRecipes, setLikedRecipes] = useLocalStorage<Meal[]>(
-    "catcook-liked-recipes",
+    STORAGE_KEY_LIKED,
     []
   );
 

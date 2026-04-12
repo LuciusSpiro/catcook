@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { usePlayer } from "../context/PlayerContext";
-import { INGREDIENT_UNITS } from "../types/player";
+import { formatIngredientAmount } from "../utils/format";
 import type { CustomRecipe } from "../types/player";
 import SwipeRow from "./SwipeRow";
 
@@ -33,12 +33,6 @@ export default function PantryCheckScreen({ recipe, onDone }: PantryCheckScreenP
     setChecked((prev) => new Set(prev).add(idx));
   };
 
-  const formatAmount = (ing: { amount: number | null; unit: string }) => {
-    if (ing.amount == null) return "";
-    const label = INGREDIENT_UNITS.find((u) => u.value === ing.unit)?.label ?? ing.unit;
-    return `${ing.amount} ${label}`;
-  };
-
   return (
     <div className="pantry-check">
       <h2 className="pantry-check__title">🐱 Was brauchst du nachkaufen?</h2>
@@ -53,7 +47,7 @@ export default function PantryCheckScreen({ recipe, onDone }: PantryCheckScreenP
               key={`${ing.name}-${idx}`}
               icon={ing.icon}
               label={ing.name}
-              sublabel={formatAmount(ing)}
+              sublabel={formatIngredientAmount(ing.amount, ing.unit)}
               onSwipeLeft={() => handleNeedMore(idx)}
               onSwipeRight={() => handleHaveEnough(idx)}
             />

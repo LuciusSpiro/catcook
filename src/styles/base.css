@@ -1,0 +1,33 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap");
+
+:root {
+  --color-primary: #ff6b6b;
+  --color-primary-dark: #e05555;
+  --color-secondary: #ffe66d;
+  --color-bg: #fff5f0;
+  --color-bg-card: #ffffff;
+  --color-text: #2d2d2d;
+  --color-text-light: #888888;
+  --color-like: #4ecdc4;
+  --color-nope: #ff6b6b;
+  --color-accent: #c3a6ff;
+  --tab-bar-height: 64px;
+  --header-height: 56px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Nunito", system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+

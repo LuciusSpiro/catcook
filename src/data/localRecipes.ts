@@ -3,8 +3,8 @@
 // without changes to the surrounding code.
 
 import baseRezepteMapped from "./baseRezepteMapped.json";
-import { INGREDIENT_UNITS } from "../types/player";
 import type { CustomRecipe } from "../types/player";
+import { formatIngredientAmount } from "../utils/format";
 import type {
   Meal,
   MealSummary,
@@ -19,16 +19,10 @@ const ALL_RECIPES = baseRezepteMapped as CustomRecipe[];
 
 // ── Adapter: CustomRecipe → Meal (TheMealDB shape) ──────────────────────────
 
-function formatMeasure(ing: { amount: number | null; unit: string }): string {
-  if (ing.amount == null) return "";
-  const unitLabel = INGREDIENT_UNITS.find((u) => u.value === ing.unit)?.label ?? ing.unit;
-  return `${ing.amount} ${unitLabel}`.trim();
-}
-
 export function customRecipeToMeal(recipe: CustomRecipe): Meal {
   const ingredients: Ingredient[] = recipe.ingredients.map((ing) => ({
     name: ing.icon ? `${ing.icon} ${ing.name}` : ing.name,
-    measure: formatMeasure(ing),
+    measure: formatIngredientAmount(ing.amount, ing.unit),
   }));
 
   const strInstructions = recipe.steps
