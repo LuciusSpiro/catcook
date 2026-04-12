@@ -4,6 +4,7 @@ import { SKILLS, INGREDIENT_UNITS, getRank, getNextRank, XP_SKILL_LEVELUP } from
 import type { CustomRecipe } from "../types/player";
 import { usePlayer, type CookReward } from "../context/PlayerContext";
 import chefPresenting from "../assets/chef-presenting.png";
+import PantryCheckScreen from "./PantryCheckScreen";
 
 interface CookingSessionProps {
   recipe: CustomRecipe;
@@ -14,6 +15,7 @@ export default function CookingSession({ recipe, onExit }: CookingSessionProps) 
   const { completeRecipeCook, player } = usePlayer();
   const [activeStep, setActiveStep] = useState(0);
   const [reward, setReward] = useState<CookReward | null>(null);
+  const [pantryChecked, setPantryChecked] = useState(false);
 
   // Timer state
   const [timerSeconds, setTimerSeconds] = useState(0);
@@ -101,6 +103,18 @@ export default function CookingSession({ recipe, onExit }: CookingSessionProps) 
   };
 
   // ── Finished screen with XP rewards ──
+  // Pantry check screen — shown after cooking, before XP reward
+  if (reward && !pantryChecked) {
+    return (
+      <div className="page cook-page">
+        <PantryCheckScreen
+          recipe={recipe}
+          onDone={() => setPantryChecked(true)}
+        />
+      </div>
+    );
+  }
+
   if (reward) {
     const rankedUp = reward.newRank > reward.oldRank;
     const newRankDef = getRank((player?.xp ?? 0));

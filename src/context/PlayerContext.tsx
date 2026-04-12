@@ -1,7 +1,7 @@
 import { createContext, useContext, useCallback, useMemo, type ReactNode } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useLikedRecipes } from "./LikedRecipesContext";
-import type { PlayerData, CustomRecipe, CustomIngredient, AchievementTier } from "../types/player";
+import type { PlayerData, CustomRecipe, CustomIngredient, AchievementTier, MealPlanEntry, PantryItem } from "../types/player";
 import { SKILLS, getRank, XP_RECIPE_COMPLETE_BASE, XP_PER_STEP, XP_SKILL_LEVELUP } from "../types/player";
 
 function getSkillLevel(xp: number): number {
@@ -26,6 +26,12 @@ interface PlayerContextValue {
   removeCustomRecipe: (id: string) => void;
   addCustomIngredient: (ingredient: CustomIngredient) => void;
   completeRecipeCook: (recipe: CustomRecipe) => CookReward;
+  setMealPlan: (date: string, entry: MealPlanEntry | null) => void;
+  mealPlan: Record<string, MealPlanEntry>;
+  pantry: Record<string, PantryItem>;
+  setPantryItem: (item: PantryItem) => void;
+  removePantryItem: (name: string) => void;
+  bulkAddToPantry: (items: PantryItem[]) => void;
   stats: Record<string, number>;
   getAchievementTier: (statKey: string, thresholds: [number, number, number]) => AchievementTier;
   skillXp: Record<string, number>;
@@ -218,6 +224,63 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [player?.xp, player?.customRecipes, setPlayer]
   );
 
+  const mealPlan = player?.mealPlan ?? {};
+  const pantry = player?.pantry ?? {};
+
+  const setPantryItem = useCallback(
+    (item: PantryItem) => {
+      setPlayer((prev) => {
+        if (!prev) return prev;
+        const p = { ...(prev.pantry ?? {}) };
+        p[item.name.toLowerCase()] = item;
+        return { ...prev, pantry: p };
+      });
+    },
+    [setPlayer]
+  );
+
+  const removePantryItem = useCallback(
+    (name: string) => {
+      setPlayer((prev) => {
+        if (!prev) return prev;
+        const p = { ...(prev.pantry ?? {}) };
+        delete p[name.toLowerCase()];
+        return { ...prev, pantry: p };
+      });
+    },
+    [setPlayer]
+  );
+
+  const bulkAddToPantry = useCallback(
+    (items: PantryItem[]) => {
+      setPlayer((prev) => {
+        if (!prev) return prev;
+        const p = { ...(prev.pantry ?? {}) };
+        for (const item of items) {
+          p[item.name.toLowerCase()] = item;
+        }
+        return { ...prev, pantry: p };
+      });
+    },
+    [setPlayer]
+  );
+
+  const setMealPlan = useCallback(
+    (date: string, entry: MealPlanEntry | null) => {
+      setPlayer((prev) => {
+        if (!prev) return prev;
+        const plan = { ...(prev.mealPlan ?? {}) };
+        if (entry) {
+          plan[date] = entry;
+        } else {
+          delete plan[date];
+        }
+        return { ...prev, mealPlan: plan };
+      });
+    },
+    [setPlayer]
+  );
+
   return (
     <PlayerContext.Provider
       value={{
@@ -228,6 +291,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         removeCustomRecipe,
         addCustomIngredient,
         completeRecipeCook,
+        setMealPlan,
+        mealPlan,
+        pantry,
+        setPantryItem,
+        removePantryItem,
+        bulkAddToPantry,
         stats,
         getAchievementTier,
         skillXp,

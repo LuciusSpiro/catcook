@@ -222,9 +222,27 @@ export interface CustomIngredient {
   icon: string;
 }
 
+// Meal planner: maps "YYYY-MM-DD" → recipe id
+export interface MealPlanEntry {
+  recipeId: string;
+  recipeName: string;
+  recipeImage?: string;
+}
+
+// Pantry: what you have at home
+export interface PantryItem {
+  name: string;
+  icon: string;
+  inStock: boolean;
+  amount?: number;
+  unit?: IngredientUnit;
+}
+
 export interface PlayerData {
   name: string;
   xp: number;
   customRecipes: CustomRecipe[];
   customIngredients: CustomIngredient[];
+  mealPlan?: Record<string, MealPlanEntry>;
+  pantry?: Record<string, PantryItem>;
 }

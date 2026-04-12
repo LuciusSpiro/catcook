@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Heart, UtensilsCrossed, Plus } from "lucide-react";
+import { Heart, UtensilsCrossed, Plus, CalendarDays, ShoppingBag } from "lucide-react";
 import type { ReactNode } from "react";
 import PlayerMenu from "./PlayerMenu";
 import NamePromptModal from "./NamePromptModal";
@@ -31,8 +31,18 @@ export default function Layout({ children }: { children: ReactNode }) {
           <span>Entdecken</span>
         </NavLink>
 
+        <NavLink to="/plan" className="tab-link">
+          <CalendarDays size={24} />
+          <span>Planer</span>
+        </NavLink>
+
         <NavLink to="/cook" className="tab-cook-btn">
           <Plus size={28} strokeWidth={3} />
+        </NavLink>
+
+        <NavLink to="/shopping" className="tab-link">
+          <ShoppingBag size={24} />
+          <span>Einkauf</span>
         </NavLink>
 
         <NavLink to="/liked" className="tab-link">

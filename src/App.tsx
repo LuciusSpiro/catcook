@@ -4,6 +4,8 @@ import SwipePage from "./pages/SwipePage";
 import LikedRecipesPage from "./pages/LikedRecipesPage";
 import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CookPage from "./pages/CookPage";
+import PlanPage from "./pages/PlanPage";
+import ShoppingPage from "./pages/ShoppingPage";
 import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
@@ -12,6 +14,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<SwipePage />} />
         <Route path="/cook" element={<CookPage />} />
+        <Route path="/plan" element={<PlanPage />} />
+        <Route path="/shopping" element={<ShoppingPage />} />
         <Route path="/liked" element={<LikedRecipesPage />} />
         <Route path="/recipe/:id" element={<RecipeDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />

@@ -2638,6 +2638,513 @@ button {
   height: 8px;
 }
 
+/* ===== Meal Planner ===== */
+.plan-page {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.plan-week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+
+.plan-week-nav__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.plan-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-card);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.plan-nav-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.plan-today-btn {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  padding: 2px 10px;
+  border-radius: 10px;
+  background: rgba(255, 107, 107, 0.08);
+}
+
+/* Day cards */
+.plan-days {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plan-day {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-bg-card);
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  min-height: 56px;
+}
+
+.plan-day--today {
+  border: 2px solid var(--color-primary);
+  background: rgba(255, 107, 107, 0.03);
+}
+
+.plan-day--past {
+  opacity: 0.5;
+}
+
+.plan-day__header {
+  width: 42px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.plan-day__name {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+  letter-spacing: 0.5px;
+}
+
+.plan-day--today .plan-day__name {
+  color: var(--color-primary);
+}
+
+.plan-day__date {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Assigned recipe */
+.plan-day__recipe {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.plan-day__img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.plan-day__recipe-name {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-day__remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.plan-day__remove:hover {
+  color: var(--color-nope);
+}
+
+/* Empty day */
+.plan-day__empty {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+}
+
+.plan-day__add {
+  flex: 1;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  background: var(--color-bg);
+  transition: background 0.15s, color 0.15s;
+  text-align: center;
+}
+
+.plan-day__add:hover {
+  background: rgba(255, 107, 107, 0.08);
+  color: var(--color-primary);
+}
+
+.plan-day__random {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+  background: var(--color-bg);
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.plan-day__random:hover {
+  background: rgba(78, 205, 196, 0.12);
+  color: var(--color-like);
+}
+
+/* Recipe picker */
+.plan-picker {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.plan-picker__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.plan-picker__header .back-btn {
+  margin-bottom: 0;
+}
+
+.plan-picker__date {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.plan-random-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-like), #3dbdb5);
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  transition: opacity 0.15s;
+}
+
+.plan-random-btn:hover {
+  opacity: 0.9;
+}
+
+.plan-picker__search {
+  margin-bottom: 12px;
+}
+
+.plan-picker__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+/* ===== SwipeRow ===== */
+.swipe-row-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+
+.swipe-row-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  color: white;
+  font-weight: 700;
+}
+
+.swipe-row-bg--left {
+  background: var(--color-nope);
+  justify-content: flex-end;
+}
+
+.swipe-row-bg--right {
+  background: var(--color-like);
+  justify-content: flex-start;
+}
+
+.swipe-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-bg-card);
+  cursor: grab;
+  user-select: none;
+  will-change: transform;
+  z-index: 1;
+}
+
+.swipe-row:active {
+  cursor: grabbing;
+}
+
+.swipe-row__icon {
+  font-size: 1.3rem;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.swipe-row__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.swipe-row__label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.swipe-row__sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.swipe-row__actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.swipe-row__btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.swipe-row__btn--left {
+  color: var(--color-nope);
+}
+
+.swipe-row__btn--left:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.swipe-row__btn--right {
+  color: var(--color-like);
+}
+
+.swipe-row__btn--right:hover {
+  background: rgba(78, 205, 196, 0.1);
+}
+
+/* ===== Shopping Page ===== */
+.shopping-page {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.shopping-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--color-bg);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.shopping-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  transition: all 0.2s;
+}
+
+.shopping-tab--active {
+  background: var(--color-bg-card);
+  color: var(--color-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.shopping-date-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.shopping-date-input {
+  flex: 1;
+  max-width: 180px;
+}
+
+.shopping-generate-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: white;
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.shopping-generate-btn:hover {
+  opacity: 0.9;
+}
+
+.shopping-hint {
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: 0.75rem;
+}
+
+.shopping-items {
+  margin-bottom: 12px;
+}
+
+.shopping-buy-all {
+  margin-top: 8px;
+}
+
+/* ===== Pantry ===== */
+.pantry-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pantry-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-bg-card);
+  border-radius: 10px;
+}
+
+.pantry-item__icon {
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+}
+
+.pantry-item__name {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pantry-item__amount {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.pantry-item__remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+  transition: color 0.15s;
+}
+
+.pantry-item__remove:hover {
+  color: var(--color-nope);
+}
+
+/* ===== Pantry Check Screen (after cooking) ===== */
+.pantry-check {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px 0;
+}
+
+.pantry-check__title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.pantry-check__hint {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 0.75rem;
+}
+
+.pantry-check__list {
+  margin-bottom: 12px;
+}
+
+.pantry-check__done-text {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-like);
+  margin-top: 16px;
+  animation: bounce 0.8s ease-in-out infinite;
+}
+
 /* Paw print background decoration */
 .app-shell {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60' opacity='0.03'%3E%3Cg fill='%23ff6b6b'%3E%3Cellipse cx='30' cy='38' rx='8' ry='10'/%3E%3Ccircle cx='19' cy='26' r='5'/%3E%3Ccircle cx='41' cy='26' r='5'/%3E%3Ccircle cx='14' cy='35' r='4'/%3E%3Ccircle cx='46' cy='35' r='4'/%3E%3C/g%3E%3C/svg%3E");
