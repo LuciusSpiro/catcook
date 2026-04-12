@@ -3,37 +3,56 @@ import { Plus } from "lucide-react";
 import catRecipeImg from "../assets/cat-recipe.png";
 import { useLikedRecipes } from "../context/LikedRecipesContext";
 import { usePlayer } from "../context/PlayerContext";
+import { getCustomRecipeById } from "../data/localRecipes";
 import RecipeGridCard from "../components/RecipeGridCard";
 import RecipeEditor from "../components/RecipeEditor";
+import RecipeDetail from "../components/RecipeDetail";
 import CustomRecipeCard, { CustomRecipeDetail } from "../components/CustomRecipeCard";
 import type { CustomRecipe } from "../types/player";
+import type { Meal } from "../types/meal";
 
 export default function LikedRecipesPage() {
-  const { likedRecipes } = useLikedRecipes();
-  const { player, removeCustomRecipe } = usePlayer();
+  const { likedRecipes, removeLike } = useLikedRecipes();
+  const { player, removeCustomRecipe, addCustomRecipe } = usePlayer();
   const [editorRecipe, setEditorRecipe] = useState<CustomRecipe | "new" | null>(null);
-  const [viewingRecipe, setViewingRecipe] = useState<CustomRecipe | null>(null);
+  const [viewingCustom, setViewingCustom] = useState<CustomRecipe | null>(null);
+  const [viewingLiked, setViewingLiked] = useState<Meal | null>(null);
 
   const customRecipes = player?.customRecipes ?? [];
 
-  // Sync viewing recipe with latest data after edit
-  const currentViewing = viewingRecipe
-    ? customRecipes.find((r) => r.id === viewingRecipe.id) ?? null
+  // Sync viewing custom recipe with latest player data
+  const currentCustom = viewingCustom
+    ? customRecipes.find((r) => r.id === viewingCustom.id) ?? null
     : null;
 
-  if (currentViewing && editorRecipe && editorRecipe !== "new") {
-    // Editing mode from detail view
+  // Edit a liked (swiped) recipe: convert to CustomRecipe, open editor
+  const editLikedRecipe = (meal: Meal) => {
+    const customRecipe = getCustomRecipeById(meal.idMeal);
+    if (!customRecipe) return;
+    setViewingLiked(null);
+    setEditorRecipe(customRecipe);
+  };
+
+  // When saving a liked recipe edit, it becomes a custom recipe
+  const handleEditorClose = () => {
+    if (editorRecipe && editorRecipe !== "new") {
+      // If this was a liked recipe being edited, remove it from likes
+      const wasLiked = likedRecipes.some((m) => m.idMeal === editorRecipe.id);
+      if (wasLiked) {
+        removeLike(editorRecipe.id);
+      }
+      // Refresh custom recipe view if we were viewing it
+      const updated = player?.customRecipes.find((r) => r.id === editorRecipe.id);
+      if (updated) setViewingCustom(updated);
+    }
+    setEditorRecipe(null);
+  };
+
+  // ── Editor Mode ──
+  if (editorRecipe && editorRecipe !== "new") {
     return (
       <div className="page liked-page">
-        <RecipeEditor
-          existingRecipe={editorRecipe}
-          onClose={() => {
-            setEditorRecipe(null);
-            // Refresh the viewing recipe from updated data
-            const updated = player?.customRecipes.find((r) => r.id === editorRecipe.id);
-            if (updated) setViewingRecipe(updated);
-          }}
-        />
+        <RecipeEditor existingRecipe={editorRecipe} onClose={handleEditorClose} />
       </div>
     );
   }
@@ -46,22 +65,37 @@ export default function LikedRecipesPage() {
     );
   }
 
-  if (currentViewing) {
+  // ── Detail View: Custom Recipe ──
+  if (currentCustom) {
     return (
       <div className="page detail-page">
         <CustomRecipeDetail
-          recipe={currentViewing}
-          onBack={() => setViewingRecipe(null)}
-          onEdit={() => setEditorRecipe(currentViewing)}
+          recipe={currentCustom}
+          onBack={() => setViewingCustom(null)}
+          onEdit={() => setEditorRecipe(currentCustom)}
           onDelete={() => {
-            removeCustomRecipe(currentViewing.id);
-            setViewingRecipe(null);
+            removeCustomRecipe(currentCustom.id);
+            setViewingCustom(null);
           }}
         />
       </div>
     );
   }
 
+  // ── Detail View: Liked (swiped) Recipe ──
+  if (viewingLiked) {
+    return (
+      <div className="page detail-page">
+        <RecipeDetail
+          meal={viewingLiked}
+          onBack={() => setViewingLiked(null)}
+          onEdit={() => editLikedRecipe(viewingLiked)}
+        />
+      </div>
+    );
+  }
+
+  // ── List View ──
   const hasContent = likedRecipes.length > 0 || customRecipes.length > 0;
 
   if (!hasContent) {
@@ -99,7 +133,7 @@ export default function LikedRecipesPage() {
               <CustomRecipeCard
                 key={recipe.id}
                 recipe={recipe}
-                onClick={() => setViewingRecipe(recipe)}
+                onClick={() => setViewingCustom(recipe)}
               />
             ))}
           </div>
@@ -111,7 +145,11 @@ export default function LikedRecipesPage() {
           <h2 className="section-subtitle">😻 Gelikte Rezepte</h2>
           <div className="recipe-grid">
             {likedRecipes.map((meal) => (
-              <RecipeGridCard key={meal.idMeal} meal={meal} />
+              <RecipeGridCard
+                key={meal.idMeal}
+                meal={meal}
+                onClick={() => setViewingLiked(meal)}
+              />
             ))}
           </div>
         </>

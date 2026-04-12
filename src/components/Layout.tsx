@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { Heart, UtensilsCrossed, Plus, CalendarDays, ShoppingBag } from "lucide-react";
+import { Heart, UtensilsCrossed, CalendarDays, ShoppingBag } from "lucide-react";
+import nowCookImg from "../assets/nowCook.png";
 import type { ReactNode } from "react";
 import PlayerMenu from "./PlayerMenu";
 import NamePromptModal from "./NamePromptModal";
@@ -37,7 +38,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </NavLink>
 
         <NavLink to="/cook" className="tab-cook-btn">
-          <Plus size={28} strokeWidth={3} />
+          <img src={nowCookImg} alt="Jetzt Kochen" className="tab-cook-btn__img" />
         </NavLink>
 
         <NavLink to="/shopping" className="tab-link">

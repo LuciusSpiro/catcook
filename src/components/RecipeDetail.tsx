@@ -1,4 +1,4 @@
-import { ArrowLeft, Play, Trash2 } from "lucide-react";
+import { ArrowLeft, Play, Trash2, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Meal } from "../types/meal";
 import { useLikedRecipes } from "../context/LikedRecipesContext";
@@ -6,9 +6,10 @@ import { useLikedRecipes } from "../context/LikedRecipesContext";
 interface RecipeDetailProps {
   meal: Meal;
   onBack?: () => void;
+  onEdit?: () => void;
 }
 
-export default function RecipeDetail({ meal, onBack }: RecipeDetailProps) {
+export default function RecipeDetail({ meal, onBack, onEdit }: RecipeDetailProps) {
   const navigate = useNavigate();
   const { isLiked, removeLike } = useLikedRecipes();
 
@@ -19,10 +20,18 @@ export default function RecipeDetail({ meal, onBack }: RecipeDetailProps) {
 
   return (
     <div className="recipe-detail">
-      <button className="back-btn" onClick={onBack ?? (() => navigate(-1))}>
-        <ArrowLeft size={20} />
-        Zurück
-      </button>
+      <div className="detail-top-bar">
+        <button className="back-btn" onClick={onBack ?? (() => navigate(-1))}>
+          <ArrowLeft size={20} />
+          Zurück
+        </button>
+        {onEdit && (
+          <button className="edit-btn" onClick={onEdit}>
+            <Pencil size={16} />
+            Bearbeiten
+          </button>
+        )}
+      </div>
 
       <div className="recipe-detail__hero">
         <img src={meal.strMealThumb} alt={meal.strMeal} />

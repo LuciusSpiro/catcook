@@ -3,11 +3,12 @@ import type { Meal } from "../types/meal";
 
 interface RecipeGridCardProps {
   meal: Meal;
+  onClick?: () => void;
 }
 
-export default function RecipeGridCard({ meal }: RecipeGridCardProps) {
-  return (
-    <Link to={`/recipe/${meal.idMeal}`} className="recipe-grid-card">
+export default function RecipeGridCard({ meal, onClick }: RecipeGridCardProps) {
+  const content = (
+    <>
       <div className="recipe-grid-card__image">
         <img src={meal.strMealThumb} alt={meal.strMeal} />
       </div>
@@ -22,6 +23,20 @@ export default function RecipeGridCard({ meal }: RecipeGridCardProps) {
           )}
         </div>
       </div>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button className="recipe-grid-card" onClick={onClick}>
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link to={`/recipe/${meal.idMeal}`} className="recipe-grid-card">
+      {content}
     </Link>
   );
 }
