@@ -12,7 +12,7 @@ interface RecipeEditorProps {
 }
 
 export default function RecipeEditor({ onClose, existingRecipe }: RecipeEditorProps) {
-  const { addCustomRecipe, updateCustomRecipe } = usePlayer();
+  const { player, addCustomRecipe, updateCustomRecipe } = usePlayer();
   const isEditing = !!existingRecipe;
 
   const [name, setName] = useState(existingRecipe?.name ?? "");
@@ -74,7 +74,12 @@ export default function RecipeEditor({ onClose, existingRecipe }: RecipeEditorPr
       createdAt: existingRecipe?.createdAt ?? new Date().toISOString(),
     };
     if (isEditing) {
-      updateCustomRecipe(recipe);
+      const exists = player?.customRecipes.some((r) => r.id === recipe.id);
+      if (exists) {
+        updateCustomRecipe(recipe);
+      } else {
+        addCustomRecipe(recipe);
+      }
     } else {
       addCustomRecipe(recipe);
     }

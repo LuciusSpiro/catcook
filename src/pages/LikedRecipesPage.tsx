@@ -13,7 +13,7 @@ import type { Meal } from "../types/meal";
 
 export default function LikedRecipesPage() {
   const { likedRecipes, removeLike } = useLikedRecipes();
-  const { player, removeCustomRecipe, addCustomRecipe } = usePlayer();
+  const { player, removeCustomRecipe } = usePlayer();
   const [editorRecipe, setEditorRecipe] = useState<CustomRecipe | "new" | null>(null);
   const [viewingCustom, setViewingCustom] = useState<CustomRecipe | null>(null);
   const [viewingLiked, setViewingLiked] = useState<Meal | null>(null);
