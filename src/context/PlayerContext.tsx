@@ -6,6 +6,7 @@ import { STORAGE_KEY_PLAYER } from "../constants";
 import type { PlayerData, CustomRecipe, CustomIngredient, AchievementTier, MealPlanEntry, PantryItem, SkillId } from "../types/player";
 import { SKILLS } from "../types/player";
 import { calculateCookReward, type CookReward } from "../utils/cookReward";
+export type { CookReward } from "../utils/cookReward";
 import { updateProfile } from "../lib/supabaseProfile";
 import { migrateLocalData } from "../lib/migration";
 import { isOnline } from "../lib/supabase";
@@ -27,6 +28,7 @@ interface PlayerContextValue {
   stats: Record<string, number>;
   getAchievementTier: (statKey: string, thresholds: [number, number, number]) => AchievementTier;
   skillXp: Record<string, number>;
+  resetProgress: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
@@ -100,7 +102,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [setPlayer]
   );
 
-  const stats = useMemo(() => {
+  const rawStats = useMemo(() => {
     const recipes = player?.customRecipes ?? [];
     const s: Record<string, number> = {
       recipes_liked: likedRecipes.length,
@@ -121,6 +123,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     s.unique_equipment = equipmentSet.size;
     return s;
   }, [player?.customRecipes, likedRecipes.length]);
+
+  const stats = useMemo(() => {
+    const baseline = player?.achievementBaseline ?? {};
+    const s: Record<string, number> = {};
+    for (const key of Object.keys(rawStats)) {
+      s[key] = Math.max(0, rawStats[key] - (baseline[key] ?? 0));
+    }
+    return s;
+  }, [rawStats, player?.achievementBaseline]);
 
   const skillXp = useMemo(() => {
     const counts = player?.skillCookCounts ?? {};
@@ -199,6 +210,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [setPlayer]
   );
 
+  const resetProgress = useCallback(() => {
+    setPlayer((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        xp: 0,
+        skillCookCounts: {},
+        cookSessions: 0,
+        achievementBaseline: { ...rawStats },
+      };
+    });
+  }, [setPlayer, rawStats]);
+
   const setMealPlan = useCallback(
     (date: string, entry: MealPlanEntry | null) => {
       setPlayer((prev) => {
@@ -218,6 +242,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         player, setName, addCustomRecipe, updateCustomRecipe, removeCustomRecipe,
         addCustomIngredient, completeRecipeCook, setMealPlan, mealPlan, pantry,
         setPantryItem, removePantryItem, bulkAddToPantry, stats, getAchievementTier, skillXp,
+        resetProgress,
       }}
     >
       {children}

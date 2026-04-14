@@ -247,4 +247,5 @@ export interface PlayerData {
   pantry?: Record<string, PantryItem>;
   skillCookCounts?: Partial<Record<SkillId, number>>;
   cookSessions?: number;
+  achievementBaseline?: Record<string, number>;
 }

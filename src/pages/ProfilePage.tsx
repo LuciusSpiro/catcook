@@ -63,9 +63,10 @@ const TIER_COLORS: Record<AchievementTier, string> = {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { player, stats, getAchievementTier, skillXp } = usePlayer();
+  const { player, stats, getAchievementTier, skillXp, resetProgress } = usePlayer();
   const { activeHousehold, households } = useHousehold();
   const [showRanks, setShowRanks] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   if (!player) return null;
 
@@ -239,6 +240,88 @@ export default function ProfilePage() {
           })}
         </div>
       </div>
+
+      {/* Reset Progress */}
+      <div className="profile-section" style={{ marginTop: 24, textAlign: "center" }}>
+        <button
+          className="btn btn-danger"
+          onClick={() => setShowResetConfirm(true)}
+          style={{
+            background: "#c0392b",
+            color: "white",
+            border: "none",
+            padding: "10px 20px",
+            borderRadius: 8,
+            cursor: "pointer",
+            fontSize: 14,
+          }}
+        >
+          Fortschritt zurücksetzen
+        </button>
+      </div>
+
+      {showResetConfirm && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setShowResetConfirm(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white",
+              borderRadius: 12,
+              padding: 24,
+              maxWidth: 360,
+              width: "90%",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            }}
+          >
+            <h3 style={{ margin: "0 0 12px" }}>Fortschritt zurücksetzen?</h3>
+            <p style={{ margin: "0 0 20px", color: "#555" }}>
+              Alle EP, Skills und Achievements werden auf 0 gesetzt. Deine Rezepte und Likes bleiben erhalten. Dies kann nicht rückgängig gemacht werden.
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: 8,
+                  border: "1px solid #ccc",
+                  background: "white",
+                  cursor: "pointer",
+                }}
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={() => {
+                  resetProgress();
+                  setShowResetConfirm(false);
+                }}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#c0392b",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+              >
+                Ja, zurücksetzen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

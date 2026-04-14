@@ -35,7 +35,7 @@ export function calculateCookReward(
   const baseXp = XP_RECIPE_COMPLETE_BASE;
   const stepXp = recipe.steps.length * XP_PER_STEP;
 
-  const skills = uniqueSkillsInRecipe(recipe).filter((s) => s !== "timing");
+  const skills: SkillId[] = uniqueSkillsInRecipe(recipe).filter((s) => s !== "timing");
   if (goodTiming) skills.push("timing");
   const newSkillCounts: Partial<Record<SkillId, number>> = { ...currentSkillCounts };
   const skillLevelUps: CookReward["skillLevelUps"] = [];
