@@ -87,7 +87,7 @@ export default function RecipeDetail({ meal, onBack, onEdit }: RecipeDetailProps
         {isLiked(meal.idMeal) && (
           <button className="remove-btn" onClick={handleRemove}>
             <Trash2 size={18} />
-            Aus Favoriten entfernen
+            Aus Kochbuch entfernen
           </button>
         )}
       </div>

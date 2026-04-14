@@ -1,24 +1,75 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import catRecipeImg from "../assets/cat-recipe.png";
 import { useLikedRecipes } from "../context/LikedRecipesContext";
 import { usePlayer } from "../context/PlayerContext";
 import { getCustomRecipeById } from "../data/localRecipes";
-import RecipeGridCard from "../components/RecipeGridCard";
+import { useAllRecipes } from "../hooks/useAllRecipes";
+import FilterBar from "../components/FilterBar";
 import RecipeEditor from "../components/RecipeEditor";
 import RecipeDetail from "../components/RecipeDetail";
 import CustomRecipeCard, { CustomRecipeDetail } from "../components/CustomRecipeCard";
 import type { CustomRecipe } from "../types/player";
 import type { Meal } from "../types/meal";
 
+const FILTER_STORAGE_KEY = "catcook-cookbook-filters";
+
+interface StoredFilters {
+  category: string | null;
+  area: string | null;
+  includedIngredients: string[];
+}
+
+function loadFilters(): StoredFilters {
+  try {
+    const raw = localStorage.getItem(FILTER_STORAGE_KEY);
+    if (!raw) return { category: null, area: null, includedIngredients: [] };
+    const parsed = JSON.parse(raw) as Partial<StoredFilters>;
+    return {
+      category: parsed.category ?? null,
+      area: parsed.area ?? null,
+      includedIngredients: Array.isArray(parsed.includedIngredients) ? parsed.includedIngredients : [],
+    };
+  } catch {
+    return { category: null, area: null, includedIngredients: [] };
+  }
+}
+
 export default function LikedRecipesPage() {
   const { likedRecipes, removeLike } = useLikedRecipes();
   const { player, removeCustomRecipe } = usePlayer();
+  const allRecipes = useAllRecipes();
   const [editorRecipe, setEditorRecipe] = useState<CustomRecipe | "new" | null>(null);
   const [viewingCustom, setViewingCustom] = useState<CustomRecipe | null>(null);
   const [viewingLiked, setViewingLiked] = useState<Meal | null>(null);
 
+  const [initialFilters] = useState(loadFilters);
+  const [category, setCategory] = useState<string | null>(initialFilters.category);
+  const [area, setArea] = useState<string | null>(initialFilters.area);
+  const [includedIngredients, setIncludedIngredients] = useState<string[]>(initialFilters.includedIngredients);
+
+  useEffect(() => {
+    localStorage.setItem(
+      FILTER_STORAGE_KEY,
+      JSON.stringify({ category, area, includedIngredients } satisfies StoredFilters),
+    );
+  }, [category, area, includedIngredients]);
+
   const customRecipes = player?.customRecipes ?? [];
+  const customIds = useMemo(() => new Set(customRecipes.map((r) => r.id)), [customRecipes]);
+
+  const filteredRecipes = useMemo(() => {
+    const needles = includedIngredients.map((n) => n.toLowerCase());
+    return allRecipes.filter((r) => {
+      if (category && (r.category ?? "").toLowerCase() !== category.toLowerCase()) return false;
+      if (area && (r.area ?? "").toLowerCase() !== area.toLowerCase()) return false;
+      if (needles.length > 0) {
+        const names = r.ingredients.map((i) => i.name.toLowerCase());
+        if (!needles.every((n) => names.some((name) => name.includes(n)))) return false;
+      }
+      return true;
+    });
+  }, [allRecipes, category, area, includedIngredients]);
 
   // Sync viewing custom recipe with latest player data
   const currentCustom = viewingCustom
@@ -116,43 +167,49 @@ export default function LikedRecipesPage() {
     );
   }
 
+  const handleCardClick = (recipe: CustomRecipe) => {
+    if (customIds.has(recipe.id)) {
+      setViewingCustom(recipe);
+      return;
+    }
+    const meal = likedRecipes.find((m) => m.idMeal === recipe.id);
+    if (meal) setViewingLiked(meal);
+  };
+
   return (
     <div className="page liked-page">
       <div className="liked-page__header">
-        <h1 className="page-title">Meine Rezepte</h1>
+        <h1 className="page-title">Kochbuch</h1>
         <button className="add-recipe-fab" onClick={() => setEditorRecipe("new")} aria-label="Rezept erstellen">
           <Plus size={24} />
         </button>
       </div>
 
-      {customRecipes.length > 0 && (
-        <>
-          <h2 className="section-subtitle">🐱 Eigene Rezepte</h2>
-          <div className="custom-recipe-grid">
-            {customRecipes.map((recipe) => (
-              <CustomRecipeCard
-                key={recipe.id}
-                recipe={recipe}
-                onClick={() => setViewingCustom(recipe)}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      <FilterBar
+        category={category}
+        area={area}
+        excludedIngredients={includedIngredients}
+        onCategoryChange={setCategory}
+        onAreaChange={setArea}
+        onExcludedIngredientsChange={setIncludedIngredients}
+        ingredientMode="include"
+      />
 
-      {likedRecipes.length > 0 && (
-        <>
-          <h2 className="section-subtitle">😻 Gelikte Rezepte</h2>
-          <div className="recipe-grid">
-            {likedRecipes.map((meal) => (
-              <RecipeGridCard
-                key={meal.idMeal}
-                meal={meal}
-                onClick={() => setViewingLiked(meal)}
-              />
-            ))}
-          </div>
-        </>
+      {filteredRecipes.length === 0 ? (
+        <div className="empty-state" style={{ padding: "40px 20px" }}>
+          <span style={{ fontSize: "2.5rem" }}>🔍</span>
+          <p className="text-light">Keine Rezepte gefunden. Passe die Filter an.</p>
+        </div>
+      ) : (
+        <div className="custom-recipe-grid">
+          {filteredRecipes.map((recipe) => (
+            <CustomRecipeCard
+              key={recipe.id}
+              recipe={recipe}
+              onClick={() => handleCardClick(recipe)}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

@@ -245,4 +245,6 @@ export interface PlayerData {
   customIngredients: CustomIngredient[];
   mealPlan?: Record<string, MealPlanEntry>;
   pantry?: Record<string, PantryItem>;
+  skillCookCounts?: Partial<Record<SkillId, number>>;
+  cookSessions?: number;
 }

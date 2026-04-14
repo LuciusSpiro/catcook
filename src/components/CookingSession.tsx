@@ -1,8 +1,24 @@
 import { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Play, Pause, SkipForward, ChevronRight, Clock } from "lucide-react";
 import { SKILLS, getRank, getNextRank, XP_SKILL_LEVELUP } from "../types/player";
-import type { CustomRecipe } from "../types/player";
+import type { CustomRecipe, SkillId } from "../types/player";
+import skillChopping from "../assets/skill-chopping.png";
+import skillCooking from "../assets/skill-cooking.png";
+import skillFrying from "../assets/skill-frying.png";
+import skillBaking from "../assets/skill-baking.png";
+import skillSeasoning from "../assets/skill-seasoning.png";
+import skillTiming from "../assets/skill-timing.png";
+
+const SKILL_IMAGES: Record<SkillId, string> = {
+  chopping: skillChopping,
+  cooking: skillCooking,
+  frying: skillFrying,
+  baking: skillBaking,
+  seasoning: skillSeasoning,
+  timing: skillTiming,
+};
 import { usePlayer, type CookReward } from "../context/PlayerContext";
+import { useHousehold } from "../context/HouseholdContext";
 import { useStepTimer } from "../hooks/useStepTimer";
 import { formatIngredientAmount } from "../utils/format";
 import chefPresenting from "../assets/chef-presenting.png";
@@ -15,6 +31,7 @@ interface CookingSessionProps {
 
 export default function CookingSession({ recipe, onExit }: CookingSessionProps) {
   const { completeRecipeCook, player } = usePlayer();
+  const { activeHousehold } = useHousehold();
   const [activeStep, setActiveStep] = useState(0);
   const [reward, setReward] = useState<CookReward | null>(null);
   const [pantryChecked, setPantryChecked] = useState(false);
@@ -28,37 +45,37 @@ export default function CookingSession({ recipe, onExit }: CookingSessionProps) 
     hasTimer, toggleTimer, skipTimer: skipTimerHook, formatTime,
   } = useStepTimer(currentStep?.waitMinutes);
 
-  const finishCooking = useCallback(() => {
+  const finishCooking = useCallback((goodTiming: boolean) => {
     if (completed) return;
     setCompleted(true);
-    const r = completeRecipeCook(recipe);
+    const r = completeRecipeCook(recipe, goodTiming);
     setReward(r);
   }, [completed, completeRecipeCook, recipe]);
+
+  const isLastStep = activeStep === totalSteps - 1;
 
   const goNext = useCallback(() => {
     if (activeStep < totalSteps - 1) {
       setActiveStep(activeStep + 1);
-    } else {
-      finishCooking();
     }
-  }, [activeStep, totalSteps, finishCooking]);
+  }, [activeStep, totalSteps]);
 
-  // Auto-advance when timer finishes
+  // Auto-advance when timer finishes (not on last step — user must choose)
   useEffect(() => {
-    if (timerDone) {
+    if (timerDone && !isLastStep) {
       const timeout = setTimeout(() => goNext(), 800);
       return () => clearTimeout(timeout);
     }
-  }, [timerDone]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timerDone, isLastStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const skipTimer = () => {
     skipTimerHook();
-    goNext();
+    if (!isLastStep) goNext();
   };
 
   // ── Finished screen with XP rewards ──
   // Pantry check screen — shown after cooking, before XP reward
-  if (reward && !pantryChecked) {
+  if (reward && !pantryChecked && activeHousehold) {
     return (
       <div className="page cook-page">
         <PantryCheckScreen
@@ -100,7 +117,10 @@ export default function CookingSession({ recipe, onExit }: CookingSessionProps) 
             </div>
             {reward.skillLevelUps.map((lu, i) => (
               <div key={i} className="xp-reward__row xp-reward__row--bonus">
-                <span>{lu.emoji} {lu.skillName} → Lv. {lu.newLevel}</span>
+                <span className="xp-reward__skill">
+                  <img src={SKILL_IMAGES[lu.skillId]} alt="" className="xp-reward__skill-img" />
+                  {lu.skillName} → Lv. {lu.newLevel}
+                </span>
                 <span className="xp-reward__val">+{XP_SKILL_LEVELUP} EP</span>
               </div>
             ))}
@@ -109,6 +129,22 @@ export default function CookingSession({ recipe, onExit }: CookingSessionProps) 
               <span className="xp-reward__val xp-reward__val--total">+{reward.totalXp} EP</span>
             </div>
           </div>
+
+          {/* Skill Level-Ups */}
+          {reward.skillLevelUps.length > 0 && (
+            <div className="skill-up-list">
+              {reward.skillLevelUps.map((lu, i) => (
+                <div key={i} className="skill-up-banner" style={{ animationDelay: `${i * 0.15}s` }}>
+                  <img src={SKILL_IMAGES[lu.skillId]} alt="" className="skill-up-banner__img" />
+                  <div className="skill-up-banner__text">
+                    <span className="skill-up-banner__label">Skill aufgestiegen! ✨</span>
+                    <span className="skill-up-banner__name">{lu.skillName} → Lv. {lu.newLevel}</span>
+                  </div>
+                  <span className="skill-up-banner__sparkle">🎉</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Rank Up */}
           {rankedUp && (
@@ -217,15 +253,23 @@ export default function CookingSession({ recipe, onExit }: CookingSessionProps) 
           </div>
         )}
 
-        {/* Next button (no timer) */}
-        {!hasTimer && (
+        {/* Next button (no timer, not last step) */}
+        {!hasTimer && !isLastStep && (
           <button className="cook-next-btn" onClick={goNext}>
-            {activeStep < totalSteps - 1 ? (
-              <>Nächster Schritt <ChevronRight size={20} /></>
-            ) : (
-              <>Fertig! 🎉</>
-            )}
+            Nächster Schritt <ChevronRight size={20} />
           </button>
+        )}
+
+        {/* Finish choice (last step) */}
+        {isLastStep && (
+          <div className="cook-finish-choice">
+            <button className="cook-finish-btn cook-finish-btn--plain" onClick={() => finishCooking(false)}>
+              Fertig 🎉
+            </button>
+            <button className="cook-finish-btn cook-finish-btn--timing" onClick={() => finishCooking(true)}>
+              ⏱️ Gutes Timing
+            </button>
+          </div>
         )}
       </div>
 

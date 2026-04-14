@@ -2,8 +2,8 @@ import { createContext, useContext, useCallback, useMemo, useEffect, type ReactN
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useLikedRecipes } from "./LikedRecipesContext";
 import { useAuth } from "./AuthContext";
-import { STORAGE_KEY_PLAYER, SKILL_MAX_LEVEL, SKILL_XP_PER_LEVEL } from "../constants";
-import type { PlayerData, CustomRecipe, CustomIngredient, AchievementTier, MealPlanEntry, PantryItem } from "../types/player";
+import { STORAGE_KEY_PLAYER } from "../constants";
+import type { PlayerData, CustomRecipe, CustomIngredient, AchievementTier, MealPlanEntry, PantryItem, SkillId } from "../types/player";
 import { SKILLS } from "../types/player";
 import { calculateCookReward, type CookReward } from "../utils/cookReward";
 import { updateProfile } from "../lib/supabaseProfile";
@@ -17,7 +17,7 @@ interface PlayerContextValue {
   updateCustomRecipe: (recipe: CustomRecipe) => void;
   removeCustomRecipe: (id: string) => void;
   addCustomIngredient: (ingredient: CustomIngredient) => void;
-  completeRecipeCook: (recipe: CustomRecipe) => CookReward;
+  completeRecipeCook: (recipe: CustomRecipe, goodTiming?: boolean) => CookReward;
   setMealPlan: (date: string, entry: MealPlanEntry | null) => void;
   mealPlan: Record<string, MealPlanEntry>;
   pantry: Record<string, PantryItem>;
@@ -123,10 +123,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [player?.customRecipes, likedRecipes.length]);
 
   const skillXp = useMemo(() => {
-    return Object.fromEntries(
-      SKILLS.map((s) => [s.id, stats[`skill_${s.id}`] ?? (s.id === "timing" ? stats.timing_steps : 0)])
-    );
-  }, [stats]);
+    const counts = player?.skillCookCounts ?? {};
+    return Object.fromEntries(SKILLS.map((s) => [s.id, counts[s.id] ?? 0]));
+  }, [player?.skillCookCounts]);
 
   const getAchievementTier = useCallback(
     (statKey: string, thresholds: [number, number, number]): AchievementTier => {
@@ -140,11 +139,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   );
 
   const completeRecipeCook = useCallback(
-    (recipe: CustomRecipe): CookReward => {
-      const reward = calculateCookReward(player?.xp ?? 0, player?.customRecipes ?? [], recipe);
+    (recipe: CustomRecipe, goodTiming = false): CookReward => {
+      const reward = calculateCookReward(
+        player?.xp ?? 0,
+        (player?.skillCookCounts ?? {}) as Partial<Record<SkillId, number>>,
+        recipe,
+        goodTiming,
+      );
       setPlayer((prev) => {
         if (!prev) return prev;
-        return { ...prev, xp: (prev.xp ?? 0) + reward.totalXp };
+        return {
+          ...prev,
+          xp: (prev.xp ?? 0) + reward.totalXp,
+          skillCookCounts: reward.newSkillCounts,
+          cookSessions: (prev.cookSessions ?? 0) + 1,
+        };
       });
       return reward;
     },

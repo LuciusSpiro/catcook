@@ -253,7 +253,7 @@ export default function RecipeEditor({ onClose, existingRecipe }: RecipeEditorPr
                   }
                 >
                   <option value="">Kein Skill</option>
-                  {SKILLS.map((s) => (
+                  {SKILLS.filter((s) => s.id !== "timing").map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.emoji} {s.name}
                     </option>

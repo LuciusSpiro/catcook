@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { usePlayer } from "../context/PlayerContext";
 import { useAllRecipes } from "../hooks/useAllRecipes";
 import { useHouseholdPantry } from "../hooks/useHouseholdPantry";
+import { useHousehold } from "../context/HouseholdContext";
 import type { CustomRecipe } from "../types/player";
 import CookingSession from "../components/CookingSession";
 import RecipePickItem from "../components/RecipePickItem";
@@ -12,6 +13,7 @@ export default function CookPage() {
   const { player } = usePlayer();
   const allRecipes = useAllRecipes();
   const { pantry } = useHouseholdPantry();
+  const { activeHousehold } = useHousehold();
   const [selectedRecipe, setSelectedRecipe] = useState<CustomRecipe | null>(null);
 
   const customRecipes = player?.customRecipes ?? [];
@@ -57,24 +59,26 @@ export default function CookPage() {
         Wähle ein Rezept und starte den Kochprozess!
       </p>
 
-      {cookableRecipes.length > 0 ? (
-        <>
-          <h2 className="section-subtitle">🍳 Jetzt kochbar ({cookableRecipes.length})</h2>
-          <p className="text-light" style={{ marginBottom: 12, fontSize: "0.85rem" }}>
-            Diese Rezepte kannst du mit deinem Lagerbestand direkt zubereiten.
-          </p>
-          <div className="cook-recipe-list">
-            {cookableRecipes.map((r) => (
-              <RecipePickItem key={r.id} recipe={r} onClick={() => setSelectedRecipe(r)} />
-            ))}
+      {activeHousehold && (
+        cookableRecipes.length > 0 ? (
+          <>
+            <h2 className="section-subtitle">🍳 Jetzt kochbar ({cookableRecipes.length})</h2>
+            <p className="text-light" style={{ marginBottom: 12, fontSize: "0.85rem" }}>
+              Diese Rezepte kannst du mit deinem Lagerbestand direkt zubereiten.
+            </p>
+            <div className="cook-recipe-list">
+              {cookableRecipes.map((r) => (
+                <RecipePickItem key={r.id} recipe={r} onClick={() => setSelectedRecipe(r)} />
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="cook-cookable-empty">
+            <p className="text-light" style={{ fontSize: "0.9rem" }}>
+              🐾 Noch keine Rezepte mit deinem aktuellen Lager kochbar — füge Zutaten in den Einkauf ein.
+            </p>
           </div>
-        </>
-      ) : (
-        <div className="cook-cookable-empty">
-          <p className="text-light" style={{ fontSize: "0.9rem" }}>
-            🐾 Noch keine Rezepte mit deinem aktuellen Lager kochbar — füge Zutaten in den Einkauf ein.
-          </p>
-        </div>
+        )
       )}
 
       {customRecipes.length > 0 && (

@@ -10,6 +10,7 @@ interface FilterBarProps {
   onCategoryChange: (cat: string | null) => void;
   onAreaChange: (area: string | null) => void;
   onExcludedIngredientsChange: (ingredients: string[]) => void;
+  ingredientMode?: "exclude" | "include";
 }
 
 export default function FilterBar({
@@ -19,7 +20,10 @@ export default function FilterBar({
   onCategoryChange,
   onAreaChange,
   onExcludedIngredientsChange,
+  ingredientMode = "exclude",
 }: FilterBarProps) {
+  const ingredientLabel = ingredientMode === "include" ? "Mit diesen Zutaten" : "Ohne diese Zutaten";
+  const ingredientPlaceholder = ingredientMode === "include" ? "Zutat einschließen..." : "Zutat ausschließen...";
   const [categories, setCategories] = useState<Category[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [ingredients, setIngredients] = useState<IngredientListItem[]>([]);
@@ -121,7 +125,7 @@ export default function FilterBar({
           </div>
 
           <div className="filter-group">
-            <label className="filter-label">Ohne diese Zutaten</label>
+            <label className="filter-label">{ingredientLabel}</label>
             <select
               className="filter-select"
               value=""
@@ -130,7 +134,7 @@ export default function FilterBar({
                 e.target.value = "";
               }}
             >
-              <option value="">Zutat ausschließen...</option>
+              <option value="">{ingredientPlaceholder}</option>
               {ingredients
                 .filter((ing) => !excludedIngredients.includes(ing.strIngredient))
                 .map((ing) => (

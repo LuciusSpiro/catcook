@@ -6,11 +6,42 @@ import { useRecipeStack } from "../hooks/useRecipeStack";
 import { useLikedRecipes } from "../context/LikedRecipesContext";
 import type { Meal } from "../types/meal";
 
+const FILTER_STORAGE_KEY = "catcook-swipe-filters";
+
+interface StoredFilters {
+  category: string | null;
+  area: string | null;
+  excludedIngredients: string[];
+}
+
+function loadFilters(): StoredFilters {
+  try {
+    const raw = localStorage.getItem(FILTER_STORAGE_KEY);
+    if (!raw) return { category: null, area: null, excludedIngredients: [] };
+    const parsed = JSON.parse(raw) as Partial<StoredFilters>;
+    return {
+      category: parsed.category ?? null,
+      area: parsed.area ?? null,
+      excludedIngredients: Array.isArray(parsed.excludedIngredients) ? parsed.excludedIngredients : [],
+    };
+  } catch {
+    return { category: null, area: null, excludedIngredients: [] };
+  }
+}
+
 export default function SwipePage() {
-  const [category, setCategory] = useState<string | null>(null);
-  const [area, setArea] = useState<string | null>(null);
-  const [excludedIngredients, setExcludedIngredients] = useState<string[]>([]);
+  const [initial] = useState(loadFilters);
+  const [category, setCategory] = useState<string | null>(initial.category);
+  const [area, setArea] = useState<string | null>(initial.area);
+  const [excludedIngredients, setExcludedIngredients] = useState<string[]>(initial.excludedIngredients);
   const [previewMeal, setPreviewMeal] = useState<Meal | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem(
+      FILTER_STORAGE_KEY,
+      JSON.stringify({ category, area, excludedIngredients } satisfies StoredFilters),
+    );
+  }, [category, area, excludedIngredients]);
 
   const { currentMeal, nextMeal, thirdMeal, isLoading, isEmpty, removeTop } =
     useRecipeStack({ category, area, excludedIngredients });
