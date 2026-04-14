@@ -1,23 +1,14 @@
-import { createContext, useContext, useCallback, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useCallback, useMemo, useEffect, type ReactNode } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useLikedRecipes } from "./LikedRecipesContext";
+import { useAuth } from "./AuthContext";
 import { STORAGE_KEY_PLAYER, SKILL_MAX_LEVEL, SKILL_XP_PER_LEVEL } from "../constants";
 import type { PlayerData, CustomRecipe, CustomIngredient, AchievementTier, MealPlanEntry, PantryItem } from "../types/player";
-import { SKILLS, getRank, XP_RECIPE_COMPLETE_BASE, XP_PER_STEP, XP_SKILL_LEVELUP } from "../types/player";
-
-function getSkillLevel(xp: number): number {
-  return Math.min(SKILL_MAX_LEVEL, Math.floor(xp / SKILL_XP_PER_LEVEL) + 1);
-}
-
-export interface CookReward {
-  baseXp: number;
-  stepXp: number;
-  skillLevelUps: { skillName: string; emoji: string; newLevel: number }[];
-  skillBonusXp: number;
-  totalXp: number;
-  oldRank: number;
-  newRank: number;
-}
+import { SKILLS } from "../types/player";
+import { calculateCookReward, type CookReward } from "../utils/cookReward";
+import { updateProfile } from "../lib/supabaseProfile";
+import { migrateLocalData } from "../lib/migration";
+import { isOnline } from "../lib/supabase";
 
 interface PlayerContextValue {
   player: PlayerData | null;
@@ -43,16 +34,25 @@ const PlayerContext = createContext<PlayerContextValue | null>(null);
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [player, setPlayer] = useLocalStorage<PlayerData | null>(STORAGE_KEY_PLAYER, null);
   const { likedRecipes } = useLikedRecipes();
+  const { user } = useAuth();
+
+  // Run migration once when user becomes available
+  useEffect(() => {
+    if (user && isOnline()) {
+      migrateLocalData(user.id);
+    }
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setName = useCallback(
     (name: string) => {
       setPlayer((prev) =>
-        prev
-          ? { ...prev, name }
-          : { name, xp: 0, customRecipes: [], customIngredients: [] }
+        prev ? { ...prev, name } : { name, xp: 0, customRecipes: [], customIngredients: [] }
       );
+      if (user && isOnline()) {
+        updateProfile(user.id, { display_name: name });
+      }
     },
-    [setPlayer]
+    [setPlayer, user]
   );
 
   const addCustomRecipe = useCallback(
@@ -100,50 +100,32 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [setPlayer]
   );
 
-  // Compute stats from actual data
   const stats = useMemo(() => {
     const recipes = player?.customRecipes ?? [];
     const s: Record<string, number> = {
       recipes_liked: likedRecipes.length,
       recipes_created: recipes.length,
-      skill_chopping: 0,
-      skill_cooking: 0,
-      skill_frying: 0,
-      skill_baking: 0,
-      skill_seasoning: 0,
-      timing_steps: 0,
-      five_star_ratings: 0,
-      unique_equipment: 0,
+      skill_chopping: 0, skill_cooking: 0, skill_frying: 0,
+      skill_baking: 0, skill_seasoning: 0, timing_steps: 0,
+      five_star_ratings: 0, unique_equipment: 0,
     };
-
     const equipmentSet = new Set<string>();
-
     for (const recipe of recipes) {
       if (recipe.rating === 5) s.five_star_ratings++;
       for (const step of recipe.steps) {
         if (step.skillId) s[`skill_${step.skillId}`]++;
         if (step.waitMinutes && step.waitMinutes > 0) s.timing_steps++;
       }
-      for (const eq of recipe.equipment) {
-        equipmentSet.add(eq.toLowerCase());
-      }
+      for (const eq of recipe.equipment) equipmentSet.add(eq.toLowerCase());
     }
-
     s.unique_equipment = equipmentSet.size;
     return s;
   }, [player?.customRecipes, likedRecipes.length]);
 
-  // Compute skill XP (count of steps using each skill)
   const skillXp = useMemo(() => {
-    const xp: Record<string, number> = {
-      chopping: stats.skill_chopping,
-      cooking: stats.skill_cooking,
-      frying: stats.skill_frying,
-      baking: stats.skill_baking,
-      seasoning: stats.skill_seasoning,
-      timing: stats.timing_steps,
-    };
-    return xp;
+    return Object.fromEntries(
+      SKILLS.map((s) => [s.id, stats[`skill_${s.id}`] ?? (s.id === "timing" ? stats.timing_steps : 0)])
+    );
   }, [stats]);
 
   const getAchievementTier = useCallback(
@@ -157,70 +139,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [stats]
   );
 
-  // Complete a cooking session — calculate and award XP
   const completeRecipeCook = useCallback(
     (recipe: CustomRecipe): CookReward => {
-      const currentXp = player?.xp ?? 0;
-      const oldRank = getRank(currentXp).rank;
-
-      // Base + step XP
-      const baseXp = XP_RECIPE_COMPLETE_BASE;
-      const stepXp = recipe.steps.length * XP_PER_STEP;
-
-      // Check for skill level-ups: simulate adding this recipe's skill steps
-      // We need to count current skill usage vs what it will be after
-      const skillCounts: Record<string, number> = {};
-      const allRecipes = player?.customRecipes ?? [];
-      for (const r of allRecipes) {
-        for (const step of r.steps) {
-          if (step.skillId) {
-            skillCounts[step.skillId] = (skillCounts[step.skillId] ?? 0) + 1;
-          }
-        }
-      }
-
-      // Count skills used in this recipe's steps
-      const recipeSkillCounts: Record<string, number> = {};
-      for (const step of recipe.steps) {
-        if (step.skillId) {
-          recipeSkillCounts[step.skillId] = (recipeSkillCounts[step.skillId] ?? 0) + 1;
-        }
-      }
-
-      // Detect level-ups
-      const skillLevelUps: CookReward["skillLevelUps"] = [];
-      for (const [skillId, addedCount] of Object.entries(recipeSkillCounts)) {
-        const before = skillCounts[skillId] ?? 0;
-        const after = before + addedCount;
-        const levelBefore = getSkillLevel(before);
-        const levelAfter = getSkillLevel(after);
-        if (levelAfter > levelBefore) {
-          const skillDef = SKILLS.find((s) => s.id === skillId);
-          if (skillDef) {
-            for (let lv = levelBefore + 1; lv <= levelAfter; lv++) {
-              skillLevelUps.push({
-                skillName: skillDef.name,
-                emoji: skillDef.emoji,
-                newLevel: lv,
-              });
-            }
-          }
-        }
-      }
-
-      const skillBonusXp = skillLevelUps.length * XP_SKILL_LEVELUP;
-      const totalXp = baseXp + stepXp + skillBonusXp;
-
-      const newTotalXp = currentXp + totalXp;
-      const newRank = getRank(newTotalXp).rank;
-
-      // Award XP
+      const reward = calculateCookReward(player?.xp ?? 0, player?.customRecipes ?? [], recipe);
       setPlayer((prev) => {
         if (!prev) return prev;
-        return { ...prev, xp: (prev.xp ?? 0) + totalXp };
+        return { ...prev, xp: (prev.xp ?? 0) + reward.totalXp };
       });
-
-      return { baseXp, stepXp, skillLevelUps, skillBonusXp, totalXp, oldRank, newRank };
+      return reward;
     },
     [player?.xp, player?.customRecipes, setPlayer]
   );
@@ -257,9 +183,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setPlayer((prev) => {
         if (!prev) return prev;
         const p = { ...(prev.pantry ?? {}) };
-        for (const item of items) {
-          p[item.name.toLowerCase()] = item;
-        }
+        for (const item of items) p[item.name.toLowerCase()] = item;
         return { ...prev, pantry: p };
       });
     },
@@ -271,11 +195,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setPlayer((prev) => {
         if (!prev) return prev;
         const plan = { ...(prev.mealPlan ?? {}) };
-        if (entry) {
-          plan[date] = entry;
-        } else {
-          delete plan[date];
-        }
+        if (entry) plan[date] = entry;
+        else delete plan[date];
         return { ...prev, mealPlan: plan };
       });
     },
@@ -285,22 +206,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   return (
     <PlayerContext.Provider
       value={{
-        player,
-        setName,
-        addCustomRecipe,
-        updateCustomRecipe,
-        removeCustomRecipe,
-        addCustomIngredient,
-        completeRecipeCook,
-        setMealPlan,
-        mealPlan,
-        pantry,
-        setPantryItem,
-        removePantryItem,
-        bulkAddToPantry,
-        stats,
-        getAchievementTier,
-        skillXp,
+        player, setName, addCustomRecipe, updateCustomRecipe, removeCustomRecipe,
+        addCustomIngredient, completeRecipeCook, setMealPlan, mealPlan, pantry,
+        setPantryItem, removePantryItem, bulkAddToPantry, stats, getAchievementTier, skillXp,
       }}
     >
       {children}

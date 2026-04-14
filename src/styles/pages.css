@@ -988,12 +988,39 @@
   font-size: 0.75rem;
 }
 
+.shopping-shared-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  padding: 6px 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.shopping-generate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .shopping-items {
   margin-bottom: 12px;
 }
 
 .shopping-buy-all {
   margin-top: 8px;
+}
+
+.cook-cookable-empty {
+  padding: 14px 16px;
+  background: var(--color-bg-card);
+  border-radius: 12px;
+  border: 1px dashed var(--color-border, rgba(0,0,0,0.12));
+  margin-bottom: 16px;
 }
 
 /* ===== Pantry ===== */

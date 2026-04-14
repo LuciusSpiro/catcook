@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Shuffle, X } from "lucide-react";
-import { usePlayer } from "../context/PlayerContext";
 import { useAllRecipes } from "../hooks/useAllRecipes";
+import { useHouseholdMealPlan } from "../hooks/useHouseholdMealPlan";
 import { toDateStr, getMonday, getWeekDays } from "../utils/date";
 import RecipePickItem from "../components/RecipePickItem";
 import type { CustomRecipe } from "../types/player";
@@ -13,7 +13,6 @@ const MONTH_NAMES = [
 ];
 
 export default function PlanPage() {
-  const { mealPlan, setMealPlan } = usePlayer();
   const allRecipes = useAllRecipes();
   const [weekOffset, setWeekOffset] = useState(0);
   const [pickingDate, setPickingDate] = useState<string | null>(null);
@@ -24,6 +23,10 @@ export default function PlanPage() {
   const monday = getMonday(today);
   monday.setDate(monday.getDate() + weekOffset * 7);
   const weekDays = getWeekDays(monday);
+
+  const fromDate = toDateStr(weekDays[0]);
+  const toDate = toDateStr(weekDays[6]);
+  const { mealPlan, setMealPlan } = useHouseholdMealPlan(fromDate, toDate);
 
   const weekLabel = (() => {
     const first = weekDays[0];
@@ -41,6 +44,17 @@ export default function PlanPage() {
       r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q)
     );
   }, [allRecipes, searchTerm]);
+
+  // Resolve recipe name/image for Supabase entries (which only store recipe_id)
+  const resolveEntry = (entry: { recipeId: string; recipeName?: string; recipeImage?: string }) => {
+    if (entry.recipeName) return entry;
+    const recipe = allRecipes.find((r) => r.id === entry.recipeId);
+    return {
+      ...entry,
+      recipeName: recipe?.name ?? entry.recipeId,
+      recipeImage: recipe?.image,
+    };
+  };
 
   const assignRandom = (date: string) => {
     if (allRecipes.length === 0) return;
@@ -124,7 +138,8 @@ export default function PlanPage() {
       <div className="plan-days">
         {weekDays.map((day, i) => {
           const dateStr = toDateStr(day);
-          const entry = mealPlan[dateStr];
+          const rawEntry = mealPlan[dateStr];
+          const entry = rawEntry ? resolveEntry(rawEntry) : null;
           const isToday = dateStr === toDateStr(today);
           const isPast = day < today && !isToday;
 

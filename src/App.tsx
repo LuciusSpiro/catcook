@@ -7,6 +7,8 @@ import CookPage from "./pages/CookPage";
 import PlanPage from "./pages/PlanPage";
 import ShoppingPage from "./pages/ShoppingPage";
 import ProfilePage from "./pages/ProfilePage";
+import HouseholdPage from "./pages/HouseholdPage";
+import JoinPage from "./pages/JoinPage";
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
         <Route path="/liked" element={<LikedRecipesPage />} />
         <Route path="/recipe/:id" element={<RecipeDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/household" element={<HouseholdPage />} />
+        <Route path="/join/:code" element={<JoinPage />} />
       </Routes>
     </Layout>
   );

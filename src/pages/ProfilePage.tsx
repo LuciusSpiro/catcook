@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import { usePlayer } from "../context/PlayerContext";
+import { useHousehold } from "../context/HouseholdContext";
+import kittenKitchenImg from "../assets/kittenkitchen.png";
 import avatarImg from "../assets/avatar.png";
 import { SKILLS, ACHIEVEMENTS, RANKS, getRank, getNextRank } from "../types/player";
 import { SKILL_MAX_LEVEL, SKILL_XP_PER_LEVEL } from "../constants";
@@ -62,6 +64,7 @@ const TIER_COLORS: Record<AchievementTier, string> = {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { player, stats, getAchievementTier, skillXp } = usePlayer();
+  const { activeHousehold, households } = useHousehold();
   const [showRanks, setShowRanks] = useState(false);
 
   if (!player) return null;
@@ -166,6 +169,28 @@ export default function ProfilePage() {
             );
           })}
         </div>
+      </div>
+
+      {/* Household */}
+      <div className="profile-section">
+        <h2 className="profile-section__title">🏠 Haushalt</h2>
+        <NavLink to="/household" className="household-card">
+          <img
+            className="household-card__img"
+            src={kittenKitchenImg}
+            alt={activeHousehold?.name ?? "Haushalte"}
+          />
+          <div className="household-card__info">
+            <div className="household-card__name">
+              {activeHousehold?.name ?? "Haushalt anlegen"}
+            </div>
+            <div className="household-card__sub">
+              {households.length > 0
+                ? `${households.length} Haushalt${households.length === 1 ? "" : "e"}`
+                : "Noch kein Haushalt"}
+            </div>
+          </div>
+        </NavLink>
       </div>
 
       {/* Achievements */}

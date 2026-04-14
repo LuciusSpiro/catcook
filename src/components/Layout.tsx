@@ -3,6 +3,7 @@ import { Heart, UtensilsCrossed, CalendarDays, ShoppingBag } from "lucide-react"
 import nowCookImg from "../assets/nowCook.png";
 import type { ReactNode } from "react";
 import PlayerMenu from "./PlayerMenu";
+import HouseholdBadge from "./HouseholdBadge";
 import NamePromptModal from "./NamePromptModal";
 import { usePlayer } from "../context/PlayerContext";
 import logo from "../assets/logo.png";
@@ -18,6 +19,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       {!player && <NamePromptModal onSubmit={setName} />}
 
       <header className="app-header">
+        <HouseholdBadge />
         <NavLink to="/" className="logo-link" aria-label="Startseite">
           <img className="logo-img" src={headerLogo} alt="CatCook" />
         </NavLink>

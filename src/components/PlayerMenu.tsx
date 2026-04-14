@@ -4,7 +4,6 @@ import avatar from "../assets/avatar.png";
 
 export default function PlayerMenu() {
   const { player } = usePlayer();
-
   if (!player) return null;
 
   return (

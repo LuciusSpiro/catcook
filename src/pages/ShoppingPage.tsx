@@ -1,6 +1,8 @@
-import { useState, useMemo } from "react";
-import { ShoppingCart, Package, Trash2 } from "lucide-react";
-import { usePlayer } from "../context/PlayerContext";
+import { useState, useMemo, useEffect } from "react";
+import { ShoppingCart, Package, Trash2, Users, RotateCcw } from "lucide-react";
+import { useHouseholdMealPlan } from "../hooks/useHouseholdMealPlan";
+import { useHouseholdPantry } from "../hooks/useHouseholdPantry";
+import { useHouseholdShoppingList } from "../hooks/useHouseholdShoppingList";
 import { getCustomRecipeById } from "../data/localRecipes";
 import { formatIngredientAmount } from "../utils/format";
 import { toDateStr } from "../utils/date";
@@ -54,18 +56,24 @@ function aggregateIngredients(
 }
 
 export default function ShoppingPage() {
-  const { mealPlan, pantry, setPantryItem, removePantryItem, bulkAddToPantry } = usePlayer();
   const [tab, setTab] = useState<Tab>("shopping");
-  const [targetDate, setTargetDate] = useState(() => {
+  const [dateInput, setDateInput] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + (7 - d.getDay())); // next Sunday
     return toDateStr(d);
   });
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const [listGenerated, setListGenerated] = useState(false);
+  const today = toDateStr(new Date());
+  const shopping = useHouseholdShoppingList();
+  const targetDate = shopping.targetDate ?? dateInput;
+  const listGenerated = shopping.generated;
+  const dismissed = shopping.dismissedKeys;
+  const { mealPlan } = useHouseholdMealPlan(today, targetDate);
+  const { pantry, setPantryItem, removePantryItem, bulkAddToPantry } = useHouseholdPantry();
   const [pantrySearch, setPantrySearch] = useState("");
 
-  const today = toDateStr(new Date());
+  useEffect(() => {
+    if (shopping.targetDate) setDateInput(shopping.targetDate);
+  }, [shopping.targetDate]);
 
   const shoppingList = useMemo(
     () => aggregateIngredients(mealPlan, today, targetDate, pantry),
@@ -94,11 +102,11 @@ export default function ShoppingPage() {
       amount: item.amount ?? undefined,
       unit: item.unit as PantryItem["unit"],
     });
-    setDismissed((prev) => new Set(prev).add(`${item.name}__${item.unit}`));
+    shopping.addDismissed(`${item.name}__${item.unit}`);
   };
 
   const handleDismiss = (item: AggregatedItem) => {
-    setDismissed((prev) => new Set(prev).add(`${item.name}__${item.unit}`));
+    shopping.addDismissed(`${item.name}__${item.unit}`);
   };
 
   const handleBuyAll = () => {
@@ -110,7 +118,7 @@ export default function ShoppingPage() {
       unit: item.unit as PantryItem["unit"],
     }));
     bulkAddToPantry(items);
-    setDismissed(new Set(shoppingList.map((i) => `${i.name}__${i.unit}`)));
+    shopping.setDismissed(shoppingList.map((i) => `${i.name}__${i.unit}`));
   };
 
   return (
@@ -141,17 +149,27 @@ export default function ShoppingPage() {
             <input
               type="date"
               className="editor-input shopping-date-input"
-              value={targetDate}
+              value={dateInput}
               min={today}
-              onChange={(e) => { setTargetDate(e.target.value); setDismissed(new Set()); setListGenerated(false); }}
+              disabled={listGenerated}
+              onChange={(e) => setDateInput(e.target.value)}
             />
-            <button
-              className="shopping-generate-btn"
-              onClick={() => { setDismissed(new Set()); setListGenerated(true); }}
-            >
-              Liste erstellen
-            </button>
+            {listGenerated ? (
+              <button className="shopping-generate-btn" onClick={() => shopping.clear()}>
+                <RotateCcw size={14} /> Neu
+              </button>
+            ) : (
+              <button className="shopping-generate-btn" onClick={() => shopping.generate(dateInput)}>
+                Liste erstellen
+              </button>
+            )}
           </div>
+
+          {listGenerated && shopping.sharedAcrossHousehold && (
+            <p className="shopping-shared-hint">
+              <Users size={14} /> Diese Liste ist mit deinem Haushalt geteilt.
+            </p>
+          )}
 
           {!listGenerated ? (
             <div className="empty-state" style={{ padding: "40px 20px" }}>
